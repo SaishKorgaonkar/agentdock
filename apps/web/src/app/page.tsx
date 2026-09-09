@@ -52,9 +52,14 @@ export default function Home() {
             >
               View execution flow
             </a>
-            <span className="rounded-full border border-black/20 px-5 py-3 text-sm font-medium text-black/50">
-              Repository setup pending
-            </span>
+            <a
+              href="https://github.com/SaishKorgaonkar/agentdock"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full border border-black/20 px-5 py-3 text-sm font-medium transition hover:bg-white/70"
+            >
+              View source
+            </a>
           </div>
         </div>
 

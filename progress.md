@@ -19,6 +19,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 - [x] Documented production-shaped architecture and phased plan in `phases.md` — 2026-09-07
 - [x] Scaffolded pnpm/Turborepo monorepo with Next.js 16, Fastify APIs, shared CI, environment template, and branded landing page — 2026-09-07
 - [x] Verified lint, type checking, service tests, and production builds with `pnpm check` — 2026-09-07
+- [x] Created and pushed the public GitHub repository at `https://github.com/SaishKorgaonkar/agentdock` — 2026-09-07
 
 ## In progress
 
@@ -41,11 +42,12 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 
 ## Evidence log
 
-| Date | Item | Evidence |
-|---|---|---|
-| 2026-09-07 | Planning baseline | `phases.md`, `.project/SCOPE.md` |
-| 2026-09-07 | Monorepo scaffold | `pnpm check`: lint passed, 2 tests passed, 3 production builds passed |
+| Date       | Item                     | Evidence                                                                                                         |
+| ---------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| 2026-09-07 | Planning baseline        | `phases.md`, `.project/SCOPE.md`                                                                                 |
+| 2026-09-07 | Monorepo scaffold        | `pnpm check`: lint passed, 2 tests passed, 3 production builds passed                                            |
 | 2026-09-07 | Local runtime smoke test | Web returned AgentDock title; orchestrator and risk API returned HTTP 200 health payloads on ports 4000 and 4001 |
+| 2026-09-07 | Public repository        | `SaishKorgaonkar/agentdock`, initial commit `cc22c62` pushed to `main`                                           |
 
 ## Update convention
 

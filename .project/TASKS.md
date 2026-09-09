@@ -25,6 +25,7 @@
 
 ## Done
 
+- [x] Created public `SaishKorgaonkar/agentdock` repository and pushed `main` — 2026-09-07
 - [x] Created pnpm/Turborepo TypeScript monorepo with Next.js web, Fastify service scaffolds, CI, and passing `pnpm check` — 2026-09-07
 - [x] Created project ledger, phase plan, and progress log — 2026-09-07
 - [x] Selected Hedera, ENS, and Chainlink as the three primary sponsor organizations — 2026-09-07
