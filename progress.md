@@ -21,6 +21,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 - [x] Verified lint, type checking, service tests, and production builds with `pnpm check` — 2026-09-07
 - [x] Created and pushed the public GitHub repository at `https://github.com/SaishKorgaonkar/agentdock` — 2026-09-07
 - [x] Added Hedera transfer and ENS resolver write/read proof runners; local unit, type, build, and workspace checks pass — 2026-09-11
+- [x] Defined the immutable shared workflow state machine with idempotency and invalid-transition coverage — 2026-09-11
 
 ## In progress
 
@@ -49,7 +50,8 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 | 2026-09-07 | Monorepo scaffold        | `pnpm check`: lint passed, 2 tests passed, 3 production builds passed                                            |
 | 2026-09-07 | Local runtime smoke test | Web returned AgentDock title; orchestrator and risk API returned HTTP 200 health payloads on ports 4000 and 4001 |
 | 2026-09-07 | Public repository        | `SaishKorgaonkar/agentdock`, initial commit `cc22c62` pushed to `main`                                           |
-| 2026-09-11 | Phase 0 proof runners    | `pnpm check` passed; real network commands are documented but not executed because no testnet credentials exist |
+| 2026-09-11 | Phase 0 proof runners    | `pnpm check` passed; real network commands are documented but not executed because no testnet credentials exist  |
+| 2026-09-11 | Workflow state machine   | Valid, skipped, terminal, and idempotent transitions are covered by `@agentdock/domain` unit tests               |
 
 ## Update convention
 

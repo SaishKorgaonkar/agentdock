@@ -15,7 +15,9 @@ The first production-shaped workflow is a **Private Treasury Risk Assessment** u
 apps/web       Next.js dashboard
 apps/api       Fastify workflow orchestrator
 apps/risk-api  Fastify paid risk-report service
-packages/      Domain and partner adapters added after Phase 0 feasibility
+packages/domain      Workflow state machine and domain events
+packages/phase-zero  Executable Hedera and ENS feasibility proofs
+packages/             Partner adapters and contracts
 ```
 
 Planning and status:

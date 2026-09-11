@@ -93,6 +93,15 @@ importers:
         specifier: ^5
         version: 5.9.3
 
+  packages/domain:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.32.0)(supports-color@8.1.1)(terser@5.51.2)(tsx@4.23.13)
+
   packages/phase-zero:
     dependencies:
       '@hashgraph/sdk':
@@ -4147,7 +4156,7 @@ snapshots:
   '@grpc/proto-loader@0.7.15':
     dependencies:
       lodash.camelcase: 4.3.0
-      long: 5.3.1
+      long: 5.3.2
       protobufjs: 7.6.6
       yargs: 17.7.3
 
