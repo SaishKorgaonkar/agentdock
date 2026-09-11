@@ -20,6 +20,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@agentdock/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       fastify:
         specifier: ^5.6.0
         version: 5.12.3

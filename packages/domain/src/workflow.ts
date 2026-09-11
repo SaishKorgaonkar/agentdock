@@ -15,6 +15,10 @@ export const workflowStatuses = [
 
 export type WorkflowStatus = (typeof workflowStatuses)[number];
 
+export function isWorkflowStatus(value: string): value is WorkflowStatus {
+  return workflowStatuses.includes(value as WorkflowStatus);
+}
+
 export type WorkflowEvent = Readonly<{
   workflowId: string;
   sequence: number;

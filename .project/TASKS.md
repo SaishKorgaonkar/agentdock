@@ -31,3 +31,4 @@
 - [x] Selected Hedera, ENS, and Chainlink as the three primary sponsor organizations — 2026-09-07
 - [x] Added tested Hedera transfer and ENS resolver proof runners, without embedding credentials — 2026-09-11
 - [x] Defined the shared workflow state machine; valid paths, skipped states, terminal states, and duplicate idempotency keys are tested — 2026-09-11
+- [x] Exposed in-memory workflow create, retrieve, and transition endpoints in the orchestrator — 2026-09-11

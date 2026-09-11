@@ -1,5 +1,6 @@
 export {
   createWorkflow,
+  isWorkflowStatus,
   transitionWorkflow,
   workflowStatuses,
   type TransitionRequest,
