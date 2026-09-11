@@ -29,6 +29,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 - [x] Added a Hedera testnet settlement verifier for successful recipient payment amounts — 2026-09-11
 - [x] Configured standards-based Hedera x402 middleware for the paid Risk API route — 2026-09-11
 - [x] Added configured-RPC EVM balance reports with deterministic evidence hashes and Ed25519 signatures — 2026-09-11
+- [x] Added durable SQLite report-idempotency storage; reports survive restarts without duplicate generation — 2026-09-12
 
 ## In progress
 

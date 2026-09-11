@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 
 import { type RiskReport, type RiskReportRequest } from "./report.js";
+import { InMemoryReportStore, type ReportStore } from "./report-store.js";
 import { configureHederaX402, type HederaX402Config } from "./x402.js";
 
 type RiskReportGenerator = {
@@ -9,12 +10,20 @@ type RiskReportGenerator = {
 
 type BuildAppOptions = {
   reportGenerator?: RiskReportGenerator;
+  reportStore?: ReportStore;
   x402?: HederaX402Config;
 };
 
-export function buildApp({ reportGenerator, x402 }: BuildAppOptions = {}) {
+export function buildApp({
+  reportGenerator,
+  reportStore = new InMemoryReportStore(),
+  x402,
+}: BuildAppOptions = {}) {
   const app = Fastify({ logger: true });
-  const reports = new Map<string, RiskReport>();
+
+  app.addHook("onClose", () => {
+    reportStore.close?.();
+  });
 
   app.get("/health", async () => ({
     service: "agentdock-risk-api",
@@ -45,15 +54,14 @@ export function buildApp({ reportGenerator, x402 }: BuildAppOptions = {}) {
       });
     }
 
-    const existing = reports.get(reportRequest.requestId);
+    const existing = reportStore.get(reportRequest.requestId);
     if (existing) {
       return existing;
     }
 
     try {
       const report = await reportGenerator.generate(reportRequest);
-      reports.set(report.requestId, report);
-      return reply.code(201).send(report);
+      return reply.code(201).send(reportStore.save(report));
     } catch (error) {
       if (error instanceof Error) {
         return reply.code(400).send({ error: error.message });

@@ -38,3 +38,4 @@
 - [x] Added a Hedera testnet settlement verifier that checks successful recipient transfer amount from transaction records — 2026-09-11
 - [x] Configured standards-based Hedera x402 middleware for the paid risk-report endpoint — 2026-09-11
 - [x] Added configured-RPC EVM balance reports with deterministic evidence hashes and Ed25519 signatures — 2026-09-11
+- [x] Added durable SQLite report-idempotency storage; reports survive restarts without duplicate generation — 2026-09-12

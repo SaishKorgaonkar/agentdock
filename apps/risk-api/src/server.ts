@@ -1,5 +1,6 @@
-import { Ed25519ReportGenerator, JsonRpcEvmBalanceSource } from "./report.js";
 import { buildApp } from "./app.js";
+import { Ed25519ReportGenerator, JsonRpcEvmBalanceSource } from "./report.js";
+import { SqliteReportStore } from "./report-store.js";
 
 const x402 = process.env.HEDERA_X402_RECIPIENT_ID
   ? {
@@ -18,8 +19,22 @@ const reportGenerator =
         privateKeyPem: process.env.REPORT_SIGNING_PRIVATE_KEY,
       })
     : undefined;
-const app = buildApp({ reportGenerator, x402 });
+const reportStore = process.env.DATABASE_URL
+  ? new SqliteReportStore(sqlitePathFromDatabaseUrl(process.env.DATABASE_URL))
+  : undefined;
+const app = buildApp({ reportGenerator, reportStore, x402 });
 const port = Number.parseInt(process.env.PORT ?? "4001", 10);
+
+function sqlitePathFromDatabaseUrl(databaseUrl: string): string {
+  if (
+    !databaseUrl.startsWith("file:") ||
+    databaseUrl.length === "file:".length
+  ) {
+    throw new Error("DATABASE_URL must be a SQLite file: URL");
+  }
+
+  return databaseUrl.slice("file:".length);
+}
 
 try {
   await app.listen({ host: "0.0.0.0", port });
