@@ -34,3 +34,4 @@
 - [x] Exposed in-memory workflow create, retrieve, and transition endpoints in the orchestrator — 2026-09-11
 - [x] Added durable SQLite workflow-event persistence; transitions and idempotency history survive an orchestrator restart — 2026-09-11
 - [x] Added the ENS authority adapter with scoped text records plus expiry/revocation policy checks — 2026-09-11
+- [x] Required a configured active ENS authority and capability before a workflow can become active — 2026-09-11

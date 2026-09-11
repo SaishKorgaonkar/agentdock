@@ -25,6 +25,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 - [x] Added tested orchestrator endpoints to create, retrieve, and transition in-memory workflows — 2026-09-11
 - [x] Added durable SQLite event persistence; workflow state and idempotency history survive restarts — 2026-09-11
 - [x] Added an ENS authority adapter for scoped resolver records and local expiry/revocation checks — 2026-09-11
+- [x] Required a configured active ENS authority and capability before the orchestrator activates a workflow — 2026-09-11
 
 ## In progress
 
@@ -57,6 +58,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 | 2026-09-11 | Workflow state machine    | Valid, skipped, terminal, and idempotent transitions are covered by `@agentdock/domain` unit tests               |
 | 2026-09-11 | Orchestrator workflow API | `POST`/`GET` workflow and transition endpoints are tested with durable SQLite restart recovery                   |
 | 2026-09-11 | ENS authority adapter     | Scoped authority parsing and active/expired/revoked policy checks are covered by unit tests                      |
+| 2026-09-11 | ENS-gated activation      | API test proves only an active authority with the required capability moves a workflow to `ACTIVE`               |
 
 ## Update convention
 

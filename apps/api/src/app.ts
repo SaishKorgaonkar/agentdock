@@ -1,4 +1,5 @@
 import { isWorkflowStatus } from "@agentdock/domain";
+import { isAuthorityActive, type AgentAuthority } from "@agentdock/ens";
 import Fastify from "fastify";
 
 import {
@@ -8,12 +9,18 @@ import {
   type WorkflowStore,
 } from "./workflow-store.js";
 
+type AuthorityReader = {
+  readAuthority(name: string): Promise<AgentAuthority | undefined>;
+};
+
 type BuildAppOptions = {
+  authorityReader?: AuthorityReader;
   now?: () => string;
   workflowStore?: WorkflowStore;
 };
 
 export function buildApp({
+  authorityReader,
   now = () => new Date().toISOString(),
   workflowStore = new InMemoryWorkflowStore(),
 }: BuildAppOptions = {}) {
@@ -49,6 +56,58 @@ export function buildApp({
       throw error;
     }
   });
+
+  app.post(
+    "/v1/workflows/:workflowId/authorize-ens",
+    async (request, reply) => {
+      const workflowId = stringValue(request.params, "workflowId");
+      const agentName = stringValue(request.body, "agentName");
+      const idempotencyKey = stringValue(request.body, "idempotencyKey");
+      const capability =
+        stringValue(request.body, "capability") ?? "purchase-risk-report";
+
+      if (!workflowId || !agentName || !idempotencyKey) {
+        return reply.code(400).send({
+          error: "workflowId, agentName, and idempotencyKey are required",
+        });
+      }
+
+      if (!authorityReader) {
+        return reply
+          .code(503)
+          .send({ error: "ENS authority is not configured" });
+      }
+
+      try {
+        const authority = await authorityReader.readAuthority(agentName);
+        if (
+          !authority ||
+          !isAuthorityActive(authority, new Date(now())) ||
+          !authority.capabilities.includes(capability)
+        ) {
+          return reply
+            .code(403)
+            .send({ error: "ENS authority does not permit this workflow" });
+        }
+
+        return workflowStore.transition(workflowId, {
+          to: "ACTIVE",
+          idempotencyKey,
+          occurredAt: now(),
+        });
+      } catch (error) {
+        if (error instanceof WorkflowNotFoundError) {
+          return reply.code(404).send({ error: error.message });
+        }
+
+        if (error instanceof Error) {
+          return reply.code(409).send({ error: error.message });
+        }
+
+        throw error;
+      }
+    },
+  );
 
   app.get("/v1/workflows/:workflowId", async (request, reply) => {
     const workflowId = stringValue(request.params, "workflowId");

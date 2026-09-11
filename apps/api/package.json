@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@agentdock/domain": "workspace:*",
+    "@agentdock/ens": "workspace:*",
     "fastify": "^5.6.0"
   },
   "devDependencies": {

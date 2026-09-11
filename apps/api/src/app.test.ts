@@ -69,6 +69,55 @@ describe("workflow API", () => {
     expect(retrieved.json()).toEqual(activated.json());
   });
 
+  it("activates only an ENS-authorized agent", async () => {
+    const app = buildApp({
+      now: () => "2026-09-11T22:00:00.000Z",
+      authorityReader: {
+        async readAuthority(agentName) {
+          if (agentName === "risk-agent.agentdock.eth") {
+            return {
+              role: "risk-agent",
+              capabilities: ["purchase-risk-report"],
+              expiresAt: "2026-10-01T00:00:00.000Z",
+              endpoint: "https://risk-api.agentdock.example/v1/risk-reports",
+              x402Network: "hedera-testnet",
+              policyHash: `0x${"a".repeat(64)}`,
+            };
+          }
+
+          return undefined;
+        },
+      },
+    });
+    apps.push(app);
+
+    await app.inject({
+      method: "POST",
+      url: "/v1/workflows",
+      payload: { id: "authorized-workflow" },
+    });
+    const activated = await app.inject({
+      method: "POST",
+      url: "/v1/workflows/authorized-workflow/authorize-ens",
+      payload: {
+        agentName: "risk-agent.agentdock.eth",
+        idempotencyKey: "authorize-ens",
+      },
+    });
+    const denied = await app.inject({
+      method: "POST",
+      url: "/v1/workflows/authorized-workflow/authorize-ens",
+      payload: {
+        agentName: "revoked-agent.agentdock.eth",
+        idempotencyKey: "authorize-revoked",
+      },
+    });
+
+    expect(activated.statusCode).toBe(200);
+    expect(activated.json()).toMatchObject({ status: "ACTIVE" });
+    expect(denied.statusCode).toBe(403);
+  });
+
   it("persists events across orchestrator restarts", async () => {
     const directory = mkdtempSync(join(tmpdir(), "agentdock-"));
     const databasePath = join(directory, "workflows.sqlite");
