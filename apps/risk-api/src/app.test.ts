@@ -22,3 +22,20 @@ describe("GET /health", () => {
     });
   });
 });
+
+describe("POST /v1/risk-reports", () => {
+  it("does not serve reports before Hedera x402 is configured", async () => {
+    const app = buildApp();
+    apps.push(app);
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/risk-reports",
+    });
+
+    expect(response.statusCode).toBe(503);
+    expect(response.json()).toEqual({
+      error: "Hedera x402 payment is not configured",
+    });
+  });
+});

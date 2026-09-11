@@ -36,3 +36,4 @@
 - [x] Added the ENS authority adapter with scoped text records plus expiry/revocation policy checks — 2026-09-11
 - [x] Required a configured active ENS authority and capability before a workflow can become active — 2026-09-11
 - [x] Added a Hedera testnet settlement verifier that checks successful recipient transfer amount from transaction records — 2026-09-11
+- [x] Configured standards-based Hedera x402 middleware for the paid risk-report endpoint — 2026-09-11

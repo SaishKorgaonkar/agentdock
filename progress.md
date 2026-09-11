@@ -27,6 +27,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 - [x] Added an ENS authority adapter for scoped resolver records and local expiry/revocation checks — 2026-09-11
 - [x] Required a configured active ENS authority and capability before the orchestrator activates a workflow — 2026-09-11
 - [x] Added a Hedera testnet settlement verifier for successful recipient payment amounts — 2026-09-11
+- [x] Configured standards-based Hedera x402 middleware for the paid Risk API route — 2026-09-11
 
 ## In progress
 
@@ -61,6 +62,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 | 2026-09-11 | ENS authority adapter      | Scoped authority parsing and active/expired/revoked policy checks are covered by unit tests                      |
 | 2026-09-11 | ENS-gated activation       | API test proves only an active authority with the required capability moves a workflow to `ACTIVE`               |
 | 2026-09-11 | Hedera settlement verifier | Unit tests cover accepted and insufficient recipient payments; live testnet transaction remains pending          |
+| 2026-09-11 | Hedera x402 middleware     | Risk API config registers `@x402/fastify` and `@x402/hedera`; real facilitator settlement remains pending        |
 
 ## Update convention
 
