@@ -17,6 +17,7 @@ apps/api       Fastify workflow orchestrator
 apps/risk-api  Fastify paid risk-report service
 packages/domain      Workflow state machine and domain events
 packages/ens         ENS authority resolver adapter
+packages/hedera      Hedera testnet payment settlement verifier
 packages/phase-zero  Executable Hedera and ENS feasibility proofs
 packages/            Partner adapters and contracts
 ```

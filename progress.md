@@ -26,6 +26,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 - [x] Added durable SQLite event persistence; workflow state and idempotency history survive restarts — 2026-09-11
 - [x] Added an ENS authority adapter for scoped resolver records and local expiry/revocation checks — 2026-09-11
 - [x] Required a configured active ENS authority and capability before the orchestrator activates a workflow — 2026-09-11
+- [x] Added a Hedera testnet settlement verifier for successful recipient payment amounts — 2026-09-11
 
 ## In progress
 
@@ -48,17 +49,18 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 
 ## Evidence log
 
-| Date       | Item                      | Evidence                                                                                                         |
-| ---------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| 2026-09-07 | Planning baseline         | `phases.md`, `.project/SCOPE.md`                                                                                 |
-| 2026-09-07 | Monorepo scaffold         | `pnpm check`: lint passed, 2 tests passed, 3 production builds passed                                            |
-| 2026-09-07 | Local runtime smoke test  | Web returned AgentDock title; orchestrator and risk API returned HTTP 200 health payloads on ports 4000 and 4001 |
-| 2026-09-07 | Public repository         | `SaishKorgaonkar/agentdock`, initial commit `cc22c62` pushed to `main`                                           |
-| 2026-09-11 | Phase 0 proof runners     | `pnpm check` passed; real network commands are documented but not executed because no testnet credentials exist  |
-| 2026-09-11 | Workflow state machine    | Valid, skipped, terminal, and idempotent transitions are covered by `@agentdock/domain` unit tests               |
-| 2026-09-11 | Orchestrator workflow API | `POST`/`GET` workflow and transition endpoints are tested with durable SQLite restart recovery                   |
-| 2026-09-11 | ENS authority adapter     | Scoped authority parsing and active/expired/revoked policy checks are covered by unit tests                      |
-| 2026-09-11 | ENS-gated activation      | API test proves only an active authority with the required capability moves a workflow to `ACTIVE`               |
+| Date       | Item                       | Evidence                                                                                                         |
+| ---------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 2026-09-07 | Planning baseline          | `phases.md`, `.project/SCOPE.md`                                                                                 |
+| 2026-09-07 | Monorepo scaffold          | `pnpm check`: lint passed, 2 tests passed, 3 production builds passed                                            |
+| 2026-09-07 | Local runtime smoke test   | Web returned AgentDock title; orchestrator and risk API returned HTTP 200 health payloads on ports 4000 and 4001 |
+| 2026-09-07 | Public repository          | `SaishKorgaonkar/agentdock`, initial commit `cc22c62` pushed to `main`                                           |
+| 2026-09-11 | Phase 0 proof runners      | `pnpm check` passed; real network commands are documented but not executed because no testnet credentials exist  |
+| 2026-09-11 | Workflow state machine     | Valid, skipped, terminal, and idempotent transitions are covered by `@agentdock/domain` unit tests               |
+| 2026-09-11 | Orchestrator workflow API  | `POST`/`GET` workflow and transition endpoints are tested with durable SQLite restart recovery                   |
+| 2026-09-11 | ENS authority adapter      | Scoped authority parsing and active/expired/revoked policy checks are covered by unit tests                      |
+| 2026-09-11 | ENS-gated activation       | API test proves only an active authority with the required capability moves a workflow to `ACTIVE`               |
+| 2026-09-11 | Hedera settlement verifier | Unit tests cover accepted and insufficient recipient payments; live testnet transaction remains pending          |
 
 ## Update convention
 
