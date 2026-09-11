@@ -23,6 +23,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 - [x] Added Hedera transfer and ENS resolver write/read proof runners; local unit, type, build, and workspace checks pass — 2026-09-11
 - [x] Defined the immutable shared workflow state machine with idempotency and invalid-transition coverage — 2026-09-11
 - [x] Added tested orchestrator endpoints to create, retrieve, and transition in-memory workflows — 2026-09-11
+- [x] Added durable SQLite event persistence; workflow state and idempotency history survive restarts — 2026-09-11
 
 ## In progress
 
@@ -53,7 +54,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 | 2026-09-07 | Public repository         | `SaishKorgaonkar/agentdock`, initial commit `cc22c62` pushed to `main`                                           |
 | 2026-09-11 | Phase 0 proof runners     | `pnpm check` passed; real network commands are documented but not executed because no testnet credentials exist  |
 | 2026-09-11 | Workflow state machine    | Valid, skipped, terminal, and idempotent transitions are covered by `@agentdock/domain` unit tests               |
-| 2026-09-11 | Orchestrator workflow API | `POST`/`GET` workflow and transition endpoints are tested; persistence remains pending                           |
+| 2026-09-11 | Orchestrator workflow API | `POST`/`GET` workflow and transition endpoints are tested with durable SQLite restart recovery                   |
 
 ## Update convention
 

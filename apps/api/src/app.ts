@@ -19,6 +19,10 @@ export function buildApp({
 }: BuildAppOptions = {}) {
   const app = Fastify({ logger: true });
 
+  app.addHook("onClose", () => {
+    workflowStore.close?.();
+  });
+
   app.get("/health", async () => ({
     service: "agentdock-api",
     status: "ok",

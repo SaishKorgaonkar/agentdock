@@ -1,6 +1,13 @@
 import { buildApp } from "./app.js";
+import {
+  SqliteWorkflowStore,
+  sqlitePathFromDatabaseUrl,
+} from "./workflow-store.js";
 
-const app = buildApp();
+const workflowStore = process.env.DATABASE_URL
+  ? new SqliteWorkflowStore(sqlitePathFromDatabaseUrl(process.env.DATABASE_URL))
+  : undefined;
+const app = buildApp({ workflowStore });
 const port = Number.parseInt(process.env.PORT ?? "4000", 10);
 
 try {

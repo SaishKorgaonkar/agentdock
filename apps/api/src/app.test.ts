@@ -1,6 +1,11 @@
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { afterEach, describe, expect, it } from "vitest";
 
 import { buildApp } from "./app.js";
+import { SqliteWorkflowStore } from "./workflow-store.js";
 
 const apps: ReturnType<typeof buildApp>[] = [];
 
@@ -62,6 +67,53 @@ describe("workflow API", () => {
       url: "/v1/workflows/workflow-1",
     });
     expect(retrieved.json()).toEqual(activated.json());
+  });
+
+  it("persists events across orchestrator restarts", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "agentdock-"));
+    const databasePath = join(directory, "workflows.sqlite");
+    const firstApp = buildApp({
+      now: () => "2026-09-11T22:15:00.000Z",
+      workflowStore: new SqliteWorkflowStore(databasePath),
+    });
+
+    try {
+      await firstApp.inject({
+        method: "POST",
+        url: "/v1/workflows",
+        payload: { id: "durable-workflow" },
+      });
+      await firstApp.inject({
+        method: "POST",
+        url: "/v1/workflows/durable-workflow/transitions",
+        payload: { status: "ACTIVE", idempotencyKey: "activate" },
+      });
+      await firstApp.close();
+
+      const secondApp = buildApp({
+        workflowStore: new SqliteWorkflowStore(databasePath),
+      });
+      const recovered = await secondApp.inject({
+        method: "GET",
+        url: "/v1/workflows/durable-workflow",
+      });
+      const retried = await secondApp.inject({
+        method: "POST",
+        url: "/v1/workflows/durable-workflow/transitions",
+        payload: { status: "ACTIVE", idempotencyKey: "activate" },
+      });
+      await secondApp.close();
+
+      expect(recovered.statusCode).toBe(200);
+      expect(recovered.json()).toMatchObject({
+        id: "durable-workflow",
+        status: "ACTIVE",
+        events: [{ idempotencyKey: "activate" }],
+      });
+      expect(retried.json()).toEqual(recovered.json());
+    } finally {
+      rmSync(directory, { force: true, recursive: true });
+    }
   });
 
   it("rejects invalid transitions and unknown workflows", async () => {

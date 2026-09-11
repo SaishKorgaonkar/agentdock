@@ -12,7 +12,7 @@
 - [ ] Provision Hedera testnet account and run `pnpm phase-zero:hedera` — done when transaction ID and balance query are recorded.
 - [ ] Provision Sepolia wallet and run `pnpm phase-zero:ens` through a writable ENSv2-compatible resolver — done when transaction and resolver read are recorded.
 - [ ] Install CRE CLI and run the Confidential Workflows starter — done when `handlerInTee` execution evidence is recorded.
-- [ ] Persist workflow events in the orchestrator — done when transitions survive service restarts and retain idempotency history.
+- [ ] Add production database deployment/migration operations — done when workflow-event storage is provisioned in staging with backups and health monitoring.
 
 ## Backlog
 
@@ -32,3 +32,4 @@
 - [x] Added tested Hedera transfer and ENS resolver proof runners, without embedding credentials — 2026-09-11
 - [x] Defined the shared workflow state machine; valid paths, skipped states, terminal states, and duplicate idempotency keys are tested — 2026-09-11
 - [x] Exposed in-memory workflow create, retrieve, and transition endpoints in the orchestrator — 2026-09-11
+- [x] Added durable SQLite workflow-event persistence; transitions and idempotency history survive an orchestrator restart — 2026-09-11
