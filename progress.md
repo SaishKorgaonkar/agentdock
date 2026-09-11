@@ -28,6 +28,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 - [x] Required a configured active ENS authority and capability before the orchestrator activates a workflow — 2026-09-11
 - [x] Added a Hedera testnet settlement verifier for successful recipient payment amounts — 2026-09-11
 - [x] Configured standards-based Hedera x402 middleware for the paid Risk API route — 2026-09-11
+- [x] Added configured-RPC EVM balance reports with deterministic evidence hashes and Ed25519 signatures — 2026-09-11
 
 ## In progress
 
@@ -63,6 +64,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 | 2026-09-11 | ENS-gated activation       | API test proves only an active authority with the required capability moves a workflow to `ACTIVE`               |
 | 2026-09-11 | Hedera settlement verifier | Unit tests cover accepted and insufficient recipient payments; live testnet transaction remains pending          |
 | 2026-09-11 | Hedera x402 middleware     | Risk API config registers `@x402/fastify` and `@x402/hedera`; real facilitator settlement remains pending        |
+| 2026-09-11 | Signed risk-report engine  | RPC balance aggregation, evidence hashing, and Ed25519 signing are covered by unit tests                         |
 
 ## Update convention
 
