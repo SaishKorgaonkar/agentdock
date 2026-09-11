@@ -14,7 +14,9 @@
     "typecheck": "turbo typecheck",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "phase-zero:hedera": "pnpm --filter @agentdock/phase-zero hedera:transfer",
+    "phase-zero:ens": "pnpm --filter @agentdock/phase-zero ens:write"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

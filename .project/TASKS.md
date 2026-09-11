@@ -1,6 +1,6 @@
 # Tasks
 
-**Updated:** 2026-09-07
+**Updated:** 2026-09-11
 
 ## In progress
 
@@ -9,8 +9,8 @@
 
 ## Next
 
-- [ ] Provision Hedera testnet account and run a signed transfer — done when transaction ID and balance query are recorded.
-- [ ] Provision Sepolia wallet and deploy/write an ENSv2 resolver record — done when transaction and resolver read are recorded.
+- [ ] Provision Hedera testnet account and run `pnpm phase-zero:hedera` — done when transaction ID and balance query are recorded.
+- [ ] Provision Sepolia wallet and run `pnpm phase-zero:ens` through a writable ENSv2-compatible resolver — done when transaction and resolver read are recorded.
 - [ ] Install CRE CLI and run the Confidential Workflows starter — done when `handlerInTee` execution evidence is recorded.
 - [ ] Define workflow event schema and state-machine tests — done when invalid state transitions are rejected.
 
@@ -29,3 +29,4 @@
 - [x] Created pnpm/Turborepo TypeScript monorepo with Next.js web, Fastify service scaffolds, CI, and passing `pnpm check` — 2026-09-07
 - [x] Created project ledger, phase plan, and progress log — 2026-09-07
 - [x] Selected Hedera, ENS, and Chainlink as the three primary sponsor organizations — 2026-09-07
+- [x] Added tested Hedera transfer and ENS resolver proof runners, without embedding credentials — 2026-09-11

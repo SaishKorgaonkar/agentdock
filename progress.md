@@ -1,7 +1,7 @@
 # AgentDock progress
 
-**Updated:** 2026-09-07
-**Current phase:** Planning / Phase 0 not started
+**Updated:** 2026-09-11
+**Current phase:** Phase 0 — proof runners ready; testnet credentials and CRE setup pending
 
 ## Current objective
 
@@ -20,18 +20,19 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 - [x] Scaffolded pnpm/Turborepo monorepo with Next.js 16, Fastify APIs, shared CI, environment template, and branded landing page — 2026-09-07
 - [x] Verified lint, type checking, service tests, and production builds with `pnpm check` — 2026-09-07
 - [x] Created and pushed the public GitHub repository at `https://github.com/SaishKorgaonkar/agentdock` — 2026-09-07
+- [x] Added Hedera transfer and ENS resolver write/read proof runners; local unit, type, build, and workspace checks pass — 2026-09-11
 
 ## In progress
 
-- [ ] Phase 0 feasibility — not started
+- [ ] Execute Phase 0 proofs with funded testnet accounts and a configured CRE starter project
 
 ## Next
 
 - [ ] Create partner testnet accounts and securely record only non-secret account metadata — done when Hedera and Sepolia wallets have test funds.
-- [ ] Run the Hedera x402 reference flow — done when a real testnet payment receipt is captured.
-- [ ] Write a real ENSv2 Sepolia resolver record — done when transaction and resolved record are independently verified.
+- [ ] Execute `pnpm phase-zero:hedera` from a funded Hedera testnet account — done when its transaction ID and balance query are recorded.
+- [ ] Execute `pnpm phase-zero:ens` through a writable ENSv2-compatible Sepolia resolver — done when transaction and resolver read are recorded.
 - [ ] Run Chainlink CRE Confidential Workflow starter example — done when CLI output proves `handlerInTee` executed.
-- [ ] Select monorepo tooling and create the repository skeleton — done when CI runs lint, unit tests, and type checking.
+- [ ] Deploy the staging services — done when a public deployment URL and health response are recorded.
 
 ## Risks / decisions needed
 
@@ -48,6 +49,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 | 2026-09-07 | Monorepo scaffold        | `pnpm check`: lint passed, 2 tests passed, 3 production builds passed                                            |
 | 2026-09-07 | Local runtime smoke test | Web returned AgentDock title; orchestrator and risk API returned HTTP 200 health payloads on ports 4000 and 4001 |
 | 2026-09-07 | Public repository        | `SaishKorgaonkar/agentdock`, initial commit `cc22c62` pushed to `main`                                           |
+| 2026-09-11 | Phase 0 proof runners    | `pnpm check` passed; real network commands are documented but not executed because no testnet credentials exist |
 
 ## Update convention
 
