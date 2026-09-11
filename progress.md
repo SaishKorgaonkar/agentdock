@@ -24,6 +24,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 - [x] Defined the immutable shared workflow state machine with idempotency and invalid-transition coverage — 2026-09-11
 - [x] Added tested orchestrator endpoints to create, retrieve, and transition in-memory workflows — 2026-09-11
 - [x] Added durable SQLite event persistence; workflow state and idempotency history survive restarts — 2026-09-11
+- [x] Added an ENS authority adapter for scoped resolver records and local expiry/revocation checks — 2026-09-11
 
 ## In progress
 
@@ -55,6 +56,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 | 2026-09-11 | Phase 0 proof runners     | `pnpm check` passed; real network commands are documented but not executed because no testnet credentials exist  |
 | 2026-09-11 | Workflow state machine    | Valid, skipped, terminal, and idempotent transitions are covered by `@agentdock/domain` unit tests               |
 | 2026-09-11 | Orchestrator workflow API | `POST`/`GET` workflow and transition endpoints are tested with durable SQLite restart recovery                   |
+| 2026-09-11 | ENS authority adapter     | Scoped authority parsing and active/expired/revoked policy checks are covered by unit tests                      |
 
 ## Update convention
 

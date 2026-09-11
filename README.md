@@ -16,8 +16,9 @@ apps/web       Next.js dashboard
 apps/api       Fastify workflow orchestrator
 apps/risk-api  Fastify paid risk-report service
 packages/domain      Workflow state machine and domain events
+packages/ens         ENS authority resolver adapter
 packages/phase-zero  Executable Hedera and ENS feasibility proofs
-packages/             Partner adapters and contracts
+packages/            Partner adapters and contracts
 ```
 
 Planning and status:

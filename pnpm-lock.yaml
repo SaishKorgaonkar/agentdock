@@ -105,6 +105,19 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.32.0)(supports-color@8.1.1)(terser@5.51.2)(tsx@4.23.13)
 
+  packages/ens:
+    dependencies:
+      viem:
+        specifier: ^2.39.3
+        version: 2.56.3(typescript@5.9.3)(zod@4.5.4)
+    devDependencies:
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.32.0)(supports-color@8.1.1)(terser@5.51.2)(tsx@4.23.13)
+
   packages/phase-zero:
     dependencies:
       '@hashgraph/sdk':

@@ -16,7 +16,7 @@
 
 ## Backlog
 
-- Implement ENSv2 subname lifecycle and revocation flow after Phase 0 passes.
+- Deploy the ENS authority adapter against the provisioned writable ENSv2-compatible resolver; prove grant, authorization, and revocation on Sepolia.
 - Implement real Hedera x402 Risk API after ENS authority layer is designed.
 - Implement CRE private policy evaluation after paid report schema is stable.
 - Deploy receipt registry and connect full orchestration.
@@ -33,3 +33,4 @@
 - [x] Defined the shared workflow state machine; valid paths, skipped states, terminal states, and duplicate idempotency keys are tested — 2026-09-11
 - [x] Exposed in-memory workflow create, retrieve, and transition endpoints in the orchestrator — 2026-09-11
 - [x] Added durable SQLite workflow-event persistence; transitions and idempotency history survive an orchestrator restart — 2026-09-11
+- [x] Added the ENS authority adapter with scoped text records plus expiry/revocation policy checks — 2026-09-11
