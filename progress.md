@@ -1,7 +1,7 @@
 # AgentDock progress
 
 **Updated:** 2026-09-12
-**Current phase:** Phase 0 — Hedera and ENS proofs complete; CRE and staging proofs pending
+**Current phase:** Phase 0 — Hedera, ENS, and CRE simulation proofs complete; staging proof pending
 
 ## Current objective
 
@@ -32,6 +32,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 - [x] Added durable SQLite report-idempotency storage; reports survive restarts without duplicate generation — 2026-09-12
 - [x] Ran a signed Hedera testnet transfer and recipient balance query — 2026-09-12
 - [x] Wrote and read an `agentdock.phase0` text record on `agentdock.eth` through the ETHOnline ENSv2 resolver — 2026-09-12
+- [x] Simulated the AgentDock private-policy handler through CRE `handlerInTee` targeting AWS Nitro `us-west-2` — 2026-09-13
 
 ## In progress
 
@@ -40,7 +41,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 ## Next
 
 - [ ] Create partner testnet accounts and securely record only non-secret account metadata — done when Hedera and Sepolia wallets have test funds.
-- [ ] Run Chainlink CRE Confidential Workflow starter example — done when CLI output proves `handlerInTee` executed.
+- [ ] Request CRE deployment access and execute the confidential workflow in a real enclave — done when deployment/execution evidence is recorded.
 - [ ] Deploy the staging services — done when a public deployment URL and health response are recorded.
 
 ## Risks / decisions needed
@@ -67,6 +68,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 | 2026-09-11 | Hedera x402 middleware     | Risk API config registers `@x402/fastify` and `@x402/hedera`; real facilitator settlement remains pending                       |
 | 2026-09-12 | Hedera transfer proof      | Transaction `0.0.8318923@1789236627.481853640` transferred 10,000 tinybars to `0.0.8318774`; status `SUCCESS`                   |
 | 2026-09-12 | ENSv2 resolver proof       | `agentdock.eth` wrote/read `agentdock.phase0`; transaction `0x5c69c7c0cdcaedd711b095124cddfbfd8d895abf6b76956090915abf7e1894c3` |
+| 2026-09-13 | CRE TEE simulation          | CLI compiled and simulated AgentDock `handlerInTee` for AWS Nitro `us-west-2`; policy result `COMPLETED` (simulator, not a real enclave) |
 | 2026-09-11 | Signed risk-report engine  | RPC balance aggregation, evidence hashing, and Ed25519 signing are covered by unit tests                                        |
 
 ## Update convention

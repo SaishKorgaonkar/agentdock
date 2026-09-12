@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const timeline = [
   ["ENS authority", "Authorized", "risk-agent.agentdock.eth"],
   ["Payment quote", "Ready", "10,000 tinybars / Hedera testnet"],
@@ -10,12 +12,12 @@ export default function WorkflowPage() {
   return (
     <main className="min-h-screen bg-[#07110e] text-[#edf6ef]">
       <header className="flex items-center justify-between border-b border-white/10 px-6 py-5 lg:px-10">
-        <a href="/" className="flex items-center gap-3 font-semibold">
+        <Link href="/" className="flex items-center gap-3 font-semibold">
           <span className="grid size-8 place-items-center rounded-full bg-[#b9ff61] text-sm text-[#07110e]">
             A
           </span>
           AgentDock
-        </a>
+        </Link>
         <span className="font-mono text-xs text-white/45">WORKFLOW_001</span>
       </header>
       <div className="mx-auto grid max-w-7xl gap-6 px-6 py-10 lg:grid-cols-[1.45fr_.75fr] lg:px-10">

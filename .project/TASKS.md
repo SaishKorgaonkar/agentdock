@@ -9,7 +9,7 @@
 
 ## Next
 
-- [ ] Install CRE CLI and run the Confidential Workflows starter — done when `handlerInTee` execution evidence is recorded.
+- [ ] Deploy the CRE confidential workflow after Chainlink enables deployment access — done when a real enclave execution is recorded.
 - [ ] Add production database deployment/migration operations — done when workflow-event storage is provisioned in staging with backups and health monitoring.
 
 ## Backlog
@@ -39,3 +39,4 @@
 - [x] Added durable SQLite report-idempotency storage; reports survive restarts without duplicate generation — 2026-09-12
 - [x] Verified a signed Hedera testnet transfer from `0.0.8318923` to `0.0.8318774` — 2026-09-12
 - [x] Wrote and read the `agentdock.phase0` record on `agentdock.eth` through the ETHOnline ENSv2 resolver — 2026-09-12
+- [x] Ran an AWS Nitro `us-west-2` `handlerInTee` simulation with an AgentDock policy decision — 2026-09-13
