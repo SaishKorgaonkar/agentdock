@@ -9,7 +9,6 @@
 
 ## Next
 
-- [ ] Provision Sepolia wallet and run `pnpm phase-zero:ens` through a writable ENSv2-compatible resolver — done when transaction and resolver read are recorded.
 - [ ] Install CRE CLI and run the Confidential Workflows starter — done when `handlerInTee` execution evidence is recorded.
 - [ ] Add production database deployment/migration operations — done when workflow-event storage is provisioned in staging with backups and health monitoring.
 
@@ -39,3 +38,4 @@
 - [x] Added configured-RPC EVM balance reports with deterministic evidence hashes and Ed25519 signatures — 2026-09-11
 - [x] Added durable SQLite report-idempotency storage; reports survive restarts without duplicate generation — 2026-09-12
 - [x] Verified a signed Hedera testnet transfer from `0.0.8318923` to `0.0.8318774` — 2026-09-12
+- [x] Wrote and read the `agentdock.phase0` record on `agentdock.eth` through the ETHOnline ENSv2 resolver — 2026-09-12

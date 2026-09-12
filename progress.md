@@ -1,7 +1,7 @@
 # AgentDock progress
 
 **Updated:** 2026-09-12
-**Current phase:** Phase 0 — Hedera proof complete; ENS, CRE, and staging proofs pending
+**Current phase:** Phase 0 — Hedera and ENS proofs complete; CRE and staging proofs pending
 
 ## Current objective
 
@@ -31,6 +31,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 - [x] Added configured-RPC EVM balance reports with deterministic evidence hashes and Ed25519 signatures — 2026-09-11
 - [x] Added durable SQLite report-idempotency storage; reports survive restarts without duplicate generation — 2026-09-12
 - [x] Ran a signed Hedera testnet transfer and recipient balance query — 2026-09-12
+- [x] Wrote and read an `agentdock.phase0` text record on `agentdock.eth` through the ETHOnline ENSv2 resolver — 2026-09-12
 
 ## In progress
 
@@ -39,7 +40,6 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 ## Next
 
 - [ ] Create partner testnet accounts and securely record only non-secret account metadata — done when Hedera and Sepolia wallets have test funds.
-- [ ] Execute `pnpm phase-zero:ens` through a writable ENSv2-compatible Sepolia resolver — done when transaction and resolver read are recorded.
 - [ ] Run Chainlink CRE Confidential Workflow starter example — done when CLI output proves `handlerInTee` executed.
 - [ ] Deploy the staging services — done when a public deployment URL and health response are recorded.
 
@@ -52,21 +52,22 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 
 ## Evidence log
 
-| Date       | Item                       | Evidence                                                                                                         |
-| ---------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| 2026-09-07 | Planning baseline          | `phases.md`, `.project/SCOPE.md`                                                                                 |
-| 2026-09-07 | Monorepo scaffold          | `pnpm check`: lint passed, 2 tests passed, 3 production builds passed                                            |
-| 2026-09-07 | Local runtime smoke test   | Web returned AgentDock title; orchestrator and risk API returned HTTP 200 health payloads on ports 4000 and 4001 |
-| 2026-09-07 | Public repository          | `SaishKorgaonkar/agentdock`, initial commit `cc22c62` pushed to `main`                                           |
-| 2026-09-11 | Phase 0 proof runners      | `pnpm check` passed; real network commands are documented but not executed because no testnet credentials exist  |
-| 2026-09-11 | Workflow state machine     | Valid, skipped, terminal, and idempotent transitions are covered by `@agentdock/domain` unit tests               |
-| 2026-09-11 | Orchestrator workflow API  | `POST`/`GET` workflow and transition endpoints are tested with durable SQLite restart recovery                   |
-| 2026-09-11 | ENS authority adapter      | Scoped authority parsing and active/expired/revoked policy checks are covered by unit tests                      |
-| 2026-09-11 | ENS-gated activation       | API test proves only an active authority with the required capability moves a workflow to `ACTIVE`               |
-| 2026-09-11 | Hedera settlement verifier | Unit tests cover accepted and insufficient recipient payments; live testnet transaction remains pending          |
-| 2026-09-11 | Hedera x402 middleware     | Risk API config registers `@x402/fastify` and `@x402/hedera`; real facilitator settlement remains pending        |
-| 2026-09-12 | Hedera transfer proof      | Transaction `0.0.8318923@1789236627.481853640` transferred 10,000 tinybars to `0.0.8318774`; status `SUCCESS`    |
-| 2026-09-11 | Signed risk-report engine  | RPC balance aggregation, evidence hashing, and Ed25519 signing are covered by unit tests                         |
+| Date       | Item                       | Evidence                                                                                                                        |
+| ---------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-09-07 | Planning baseline          | `phases.md`, `.project/SCOPE.md`                                                                                                |
+| 2026-09-07 | Monorepo scaffold          | `pnpm check`: lint passed, 2 tests passed, 3 production builds passed                                                           |
+| 2026-09-07 | Local runtime smoke test   | Web returned AgentDock title; orchestrator and risk API returned HTTP 200 health payloads on ports 4000 and 4001                |
+| 2026-09-07 | Public repository          | `SaishKorgaonkar/agentdock`, initial commit `cc22c62` pushed to `main`                                                          |
+| 2026-09-11 | Phase 0 proof runners      | `pnpm check` passed; real network commands are documented but not executed because no testnet credentials exist                 |
+| 2026-09-11 | Workflow state machine     | Valid, skipped, terminal, and idempotent transitions are covered by `@agentdock/domain` unit tests                              |
+| 2026-09-11 | Orchestrator workflow API  | `POST`/`GET` workflow and transition endpoints are tested with durable SQLite restart recovery                                  |
+| 2026-09-11 | ENS authority adapter      | Scoped authority parsing and active/expired/revoked policy checks are covered by unit tests                                     |
+| 2026-09-11 | ENS-gated activation       | API test proves only an active authority with the required capability moves a workflow to `ACTIVE`                              |
+| 2026-09-11 | Hedera settlement verifier | Unit tests cover accepted and insufficient recipient payments; live testnet transaction remains pending                         |
+| 2026-09-11 | Hedera x402 middleware     | Risk API config registers `@x402/fastify` and `@x402/hedera`; real facilitator settlement remains pending                       |
+| 2026-09-12 | Hedera transfer proof      | Transaction `0.0.8318923@1789236627.481853640` transferred 10,000 tinybars to `0.0.8318774`; status `SUCCESS`                   |
+| 2026-09-12 | ENSv2 resolver proof       | `agentdock.eth` wrote/read `agentdock.phase0`; transaction `0x5c69c7c0cdcaedd711b095124cddfbfd8d895abf6b76956090915abf7e1894c3` |
+| 2026-09-11 | Signed risk-report engine  | RPC balance aggregation, evidence hashing, and Ed25519 signing are covered by unit tests                                        |
 
 ## Update convention
 
