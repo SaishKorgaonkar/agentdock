@@ -21,7 +21,13 @@ if (tinybars <= 0n) {
 
 const operator = AccountId.fromString(operatorId);
 const recipient = AccountId.fromString(recipientId);
-const operatorPrivateKey = PrivateKey.fromStringECDSA(operatorKey);
+const operatorKeyHex = operatorKey.replace(/^0x/, "");
+
+if (!/^[0-9a-fA-F]{64}$/.test(operatorKeyHex)) {
+  throw new Error("HEDERA_OPERATOR_KEY must be a 32-byte ECDSA private key in hex");
+}
+
+const operatorPrivateKey = PrivateKey.fromStringECDSA(operatorKeyHex);
 
 if (operator.compare(recipient) === 0) {
   throw new Error(
