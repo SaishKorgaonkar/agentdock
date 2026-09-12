@@ -3,6 +3,7 @@ import {
   AccountId,
   Client,
   Hbar,
+  PrivateKey,
   Status,
   TransferTransaction,
 } from "@hashgraph/sdk";
@@ -20,6 +21,7 @@ if (tinybars <= 0n) {
 
 const operator = AccountId.fromString(operatorId);
 const recipient = AccountId.fromString(recipientId);
+const operatorPrivateKey = PrivateKey.fromStringECDSA(operatorKey);
 
 if (operator.compare(recipient) === 0) {
   throw new Error(
@@ -28,7 +30,7 @@ if (operator.compare(recipient) === 0) {
 }
 
 const client = Client.forTestnet();
-client.setOperator(operator, operatorKey);
+client.setOperator(operator, operatorPrivateKey);
 
 const transaction = new TransferTransaction()
   .addHbarTransfer(operator, Hbar.fromTinybars(-tinybars))
