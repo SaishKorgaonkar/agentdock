@@ -226,6 +226,8 @@ export function buildApp({
     },
   );
 
+  app.get("/v1/workflows", async () => ({ workflows: workflowStore.list() }));
+
   app.get("/v1/workflows/:workflowId", async (request, reply) => {
     const workflowId = stringValue(request.params, "workflowId");
 

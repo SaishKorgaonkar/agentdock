@@ -28,6 +28,7 @@ export type WorkflowReportEvidence = Readonly<{
 
 export interface WorkflowStore {
   create(workflowId: string): Workflow;
+  list(): Workflow[];
   get(workflowId: string): Workflow;
   transition(workflowId: string, request: TransitionRequest): Workflow;
   saveReportEvidence(workflowId: string, evidence: WorkflowReportEvidence): void;
@@ -47,6 +48,10 @@ export class InMemoryWorkflowStore implements WorkflowStore {
     const workflow = createWorkflow(workflowId);
     this.#workflows.set(workflowId, workflow);
     return workflow;
+  }
+
+  list(): Workflow[] {
+    return [...this.#workflows.values()];
   }
 
   get(workflowId: string): Workflow {
@@ -133,6 +138,11 @@ export class SqliteWorkflowStore implements WorkflowStore {
       .prepare("INSERT INTO workflows (id, status) VALUES (?, ?)")
       .run(workflow.id, workflow.status);
     return workflow;
+  }
+
+  list(): Workflow[] {
+    const rows = this.#database.prepare("SELECT id FROM workflows ORDER BY id DESC").all() as { id: string }[];
+    return rows.map((row) => this.get(row.id));
   }
 
   get(workflowId: string): Workflow {
