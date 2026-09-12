@@ -1,7 +1,7 @@
 # AgentDock progress
 
-**Updated:** 2026-09-11
-**Current phase:** Phase 0 — proof runners ready; testnet credentials and CRE setup pending
+**Updated:** 2026-09-12
+**Current phase:** Phase 0 — Hedera proof complete; ENS, CRE, and staging proofs pending
 
 ## Current objective
 
@@ -30,6 +30,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 - [x] Configured standards-based Hedera x402 middleware for the paid Risk API route — 2026-09-11
 - [x] Added configured-RPC EVM balance reports with deterministic evidence hashes and Ed25519 signatures — 2026-09-11
 - [x] Added durable SQLite report-idempotency storage; reports survive restarts without duplicate generation — 2026-09-12
+- [x] Ran a signed Hedera testnet transfer and recipient balance query — 2026-09-12
 
 ## In progress
 
@@ -38,7 +39,6 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 ## Next
 
 - [ ] Create partner testnet accounts and securely record only non-secret account metadata — done when Hedera and Sepolia wallets have test funds.
-- [ ] Execute `pnpm phase-zero:hedera` from a funded Hedera testnet account — done when its transaction ID and balance query are recorded.
 - [ ] Execute `pnpm phase-zero:ens` through a writable ENSv2-compatible Sepolia resolver — done when transaction and resolver read are recorded.
 - [ ] Run Chainlink CRE Confidential Workflow starter example — done when CLI output proves `handlerInTee` executed.
 - [ ] Deploy the staging services — done when a public deployment URL and health response are recorded.
@@ -65,6 +65,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 | 2026-09-11 | ENS-gated activation       | API test proves only an active authority with the required capability moves a workflow to `ACTIVE`               |
 | 2026-09-11 | Hedera settlement verifier | Unit tests cover accepted and insufficient recipient payments; live testnet transaction remains pending          |
 | 2026-09-11 | Hedera x402 middleware     | Risk API config registers `@x402/fastify` and `@x402/hedera`; real facilitator settlement remains pending        |
+| 2026-09-12 | Hedera transfer proof      | Transaction `0.0.8318923@1789236627.481853640` transferred 10,000 tinybars to `0.0.8318774`; status `SUCCESS`    |
 | 2026-09-11 | Signed risk-report engine  | RPC balance aggregation, evidence hashing, and Ed25519 signing are covered by unit tests                         |
 
 ## Update convention

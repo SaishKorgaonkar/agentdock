@@ -1,6 +1,6 @@
 # Tasks
 
-**Updated:** 2026-09-11
+**Updated:** 2026-09-12
 
 ## In progress
 
@@ -9,7 +9,6 @@
 
 ## Next
 
-- [ ] Provision Hedera testnet account and run `pnpm phase-zero:hedera` — done when transaction ID and balance query are recorded.
 - [ ] Provision Sepolia wallet and run `pnpm phase-zero:ens` through a writable ENSv2-compatible resolver — done when transaction and resolver read are recorded.
 - [ ] Install CRE CLI and run the Confidential Workflows starter — done when `handlerInTee` execution evidence is recorded.
 - [ ] Add production database deployment/migration operations — done when workflow-event storage is provisioned in staging with backups and health monitoring.
@@ -39,3 +38,4 @@
 - [x] Configured standards-based Hedera x402 middleware for the paid risk-report endpoint — 2026-09-11
 - [x] Added configured-RPC EVM balance reports with deterministic evidence hashes and Ed25519 signatures — 2026-09-11
 - [x] Added durable SQLite report-idempotency storage; reports survive restarts without duplicate generation — 2026-09-12
+- [x] Verified a signed Hedera testnet transfer from `0.0.8318923` to `0.0.8318774` — 2026-09-12
