@@ -18,11 +18,13 @@ Autonomous agents need to use external paid services, but API keys, wallet keys,
 - A Chainlink CRE Confidential Workflow that evaluates private report and policy inputs.
 - A Sepolia receipt registry containing only verifiable hashes, references, and status.
 - A hosted dashboard to create, execute, inspect, approve, and revoke the initial workflow.
+- A public directory where providers publish ENS-identified, x402-priced agent services and users discover and launch governed workflows.
+- Provider workflow evidence and earnings history derived from completed testnet requests.
 - Testnet end-to-end operation using real payment, resolver, confidential-workflow, and contract interactions.
 
 ## Out of scope
 
-- A general agent marketplace or arbitrary workflow builder; one production-shaped workflow comes first.
+- Arbitrary unbounded agent execution; provider services and workflows remain typed, policy-bound templates with explicit capabilities.
 - Autonomous mainnet trading or unrestricted treasury access; production starts with bounded, human-approved actions.
 - Mock payment, mock risk reports, mock ENS records, or mock confidential-workflow results.
 - Ledger integration; no compatible Ledger device is currently available.
