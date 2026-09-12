@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Event = { sequence: number; from: string; to: string; occurredAt: string };
 type Workflow = { id: string; status: string; events: Event[] };
@@ -11,6 +11,23 @@ export default function WorkflowConsole() {
   const [workflow, setWorkflow] = useState<Workflow>();
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(false);
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+
+  async function loadWorkflows() {
+    if (!apiUrl) return;
+    try {
+      const response = await fetch(`${apiUrl}/v1/workflows`);
+      if (!response.ok) return;
+      const body = (await response.json()) as { workflows?: Workflow[] };
+      setWorkflows(body.workflows ?? []);
+    } catch {
+      // The create action reports actionable errors; history is best-effort.
+    }
+  }
+
+  useEffect(() => {
+    void loadWorkflows();
+  }, []);
 
   async function createWorkflow() {
     if (!apiUrl) {
@@ -28,6 +45,7 @@ export default function WorkflowConsole() {
       });
       if (!response.ok) throw new Error(`Workflow API returned HTTP ${response.status}`);
       setWorkflow((await response.json()) as Workflow);
+      await loadWorkflows();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Unable to create workflow");
     } finally {
@@ -53,6 +71,10 @@ export default function WorkflowConsole() {
         <p className="mt-5 text-sm text-white/55">Next: attach an ENS-authorized agent and select a paid provider service.</p>
         {workflow.events.length > 0 && <ol className="mt-6 space-y-2">{workflow.events.map((event) => <li key={event.sequence} className="font-mono text-xs text-white/45">{event.sequence}. {event.from} → {event.to}</li>)}</ol>}
       </div>}
+      <div className="mt-8 border-t border-white/10 pt-6">
+        <p className="font-mono text-xs uppercase tracking-[.18em] text-white/40">Workflow history</p>
+        {workflows.length ? <div className="mt-4 space-y-2">{workflows.map((item) => <button key={item.id} onClick={() => setWorkflow(item)} className="flex w-full items-center justify-between border border-white/10 bg-[#08120f] px-4 py-3 text-left hover:border-[#b9ff61]/60"><span className="font-mono text-xs text-white/55">{item.id}</span><span className="font-mono text-xs text-[#b9ff61]">{item.status}</span></button>)}</div> : <p className="mt-4 text-sm text-white/40">No workflows created yet.</p>}
+      </div>
     </section>
   );
 }
