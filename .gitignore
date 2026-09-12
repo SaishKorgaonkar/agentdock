@@ -31,3 +31,6 @@ pnpm-debug.log*
 broadcast/
 cache/
 out/
+
+# Hardhat artifacts
+artifacts/
