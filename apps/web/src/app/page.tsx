@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const stages = [
   ["01", "ENS authority", "Scoped agent identity checked"],
   ["02", "Hedera x402", "Specialist report purchased"],
@@ -48,12 +50,12 @@ export default function Home() {
             private policy.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
-            <a
-              href="/workflow"
+            <Link
+              href="/services"
               className="rounded-full bg-[#b9ff61] px-6 py-3 text-sm font-semibold text-[#07110e] transition hover:bg-[#d4ff98]"
             >
-              Explore the workflow
-            </a>
+              Explore agent services
+            </Link>
             <span className="rounded-full border border-white/15 px-5 py-3 font-mono text-xs text-white/55">
               Testnet / v0.1
             </span>
