@@ -16,7 +16,7 @@ export default function Home() {
           AgentDock
         </div>
         <div className="hidden items-center gap-7 text-sm text-white/55 md:flex">
-          <a href="#workflow" className="transition hover:text-white">
+          <a href="/workflow" className="transition hover:text-white">
             Workflow
           </a>
           <a href="#security" className="transition hover:text-white">
@@ -49,7 +49,7 @@ export default function Home() {
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <a
-              href="#workflow"
+              href="/workflow"
               className="rounded-full bg-[#b9ff61] px-6 py-3 text-sm font-semibold text-[#07110e] transition hover:bg-[#d4ff98]"
             >
               Explore the workflow
