@@ -15,6 +15,8 @@ export interface ServiceStore {
   create(service: AgentService): AgentService;
   list(query?: string): AgentService[];
   get(id: string): AgentService | undefined;
+  selectForWorkflow(workflowId: string, serviceId: string): AgentService;
+  selectedForWorkflow(workflowId: string): AgentService | undefined;
   close?(): void;
 }
 
@@ -37,6 +39,12 @@ export class InMemoryServiceStore implements ServiceStore {
   get(id: string): AgentService | undefined {
     return this.#services.get(id);
   }
+  selectForWorkflow(_workflowId: string, serviceId: string): AgentService {
+    const service = this.get(serviceId);
+    if (!service) throw new Error("Service not found");
+    return service;
+  }
+  selectedForWorkflow(_workflowId: string): AgentService | undefined { return undefined; }
 }
 
 export class SqliteServiceStore implements ServiceStore {
@@ -47,6 +55,9 @@ export class SqliteServiceStore implements ServiceStore {
       id TEXT PRIMARY KEY, provider_name TEXT NOT NULL, ens_name TEXT NOT NULL UNIQUE,
       capability TEXT NOT NULL, description TEXT NOT NULL, endpoint TEXT NOT NULL,
       price_tinybars TEXT NOT NULL, created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS workflow_service_selections (
+      workflow_id TEXT PRIMARY KEY, service_id TEXT NOT NULL REFERENCES agent_services(id)
     );`);
   }
   create(service: AgentService): AgentService {
@@ -78,6 +89,15 @@ export class SqliteServiceStore implements ServiceStore {
         `SELECT id, provider_name as providerName, ens_name as ensName, capability, description, endpoint, price_tinybars as priceTinybars, created_at as createdAt FROM agent_services WHERE id = ?`,
       )
       .get(id) as AgentService | undefined;
+  }
+  selectForWorkflow(workflowId: string, serviceId: string): AgentService {
+    const service = this.get(serviceId);
+    if (!service) throw new Error("Service not found");
+    this.#database.prepare(`INSERT INTO workflow_service_selections VALUES (?, ?) ON CONFLICT(workflow_id) DO UPDATE SET service_id = excluded.service_id`).run(workflowId, serviceId);
+    return service;
+  }
+  selectedForWorkflow(workflowId: string): AgentService | undefined {
+    return this.#database.prepare(`SELECT s.id, s.provider_name as providerName, s.ens_name as ensName, s.capability, s.description, s.endpoint, s.price_tinybars as priceTinybars, s.created_at as createdAt FROM agent_services s JOIN workflow_service_selections w ON w.service_id = s.id WHERE w.workflow_id = ?`).get(workflowId) as AgentService | undefined;
   }
   close(): void {
     this.#database.close();

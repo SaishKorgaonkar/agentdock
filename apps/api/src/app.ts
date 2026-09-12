@@ -80,6 +80,18 @@ export function buildApp({
     }
   });
 
+  app.post("/v1/workflows/:workflowId/select-service", async (request, reply) => {
+    const workflowId = stringValue(request.params, "workflowId");
+    const serviceId = stringValue(request.body, "serviceId");
+    if (!workflowId || !serviceId) return reply.code(400).send({ error: "serviceId is required" });
+    try {
+      workflowStore.get(workflowId);
+      return { service: serviceStore.selectForWorkflow(workflowId, serviceId) };
+    } catch (error) {
+      return reply.code(404).send({ error: error instanceof Error ? error.message : "Service or workflow not found" });
+    }
+  });
+
   app.post("/v1/workflows", async (request, reply) => {
     const workflowId = stringValue(request.body, "id");
 
