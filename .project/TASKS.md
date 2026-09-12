@@ -12,7 +12,7 @@
 - [ ] Build the provider-service catalog, service publishing, workflow launch, and evidence APIs — done when real service records and user-owned workflow records are available through staging APIs.
 - [ ] Add authentication and ownership enforcement for public users — done when protected workflow/provider routes verify identity.
 - [ ] Build the Fluence-style public landing page, catalog, dashboard, and workflow evidence UI — done when the Vercel app is usable against staging APIs.
-- [ ] Deploy the CRE confidential workflow after Chainlink enables deployment access — done when a real enclave execution is recorded.
+- [ ] Deploy the CRE confidential workflow after Chainlink enables deployment access — optional enhancement; official simulator evidence is accepted for the bounty.
 - [ ] Add production database deployment/migration operations — done when workflow-event storage is provisioned in staging with backups and health monitoring.
 
 ## Backlog

@@ -47,7 +47,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 ## Risks / decisions needed
 
 - ENSv2 is presently a Sepolia beta; mainnet identity must be behind an adapter with an ENS mainnet compatibility path.
-- Confirm availability and onboarding requirements for live Chainlink CRE network execution. The track accepts CRE CLI simulation, but live deployment is preferable.
+- [x] Chainlink mentor confirmed the official confidential-workflow simulator is accepted for bounty and prize-track consideration; deployment access is optional enhancement — 2026-09-13.
 - Confirm the current ETHOnline submission dashboard rule for the maximum number of partner organizations/tracks.
 - Decide the production signing/custody model before allowing any mainnet automated payment. Testnet agent keys must never become the production model.
 
