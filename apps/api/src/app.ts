@@ -1,6 +1,5 @@
 import { isWorkflowStatus } from "@agentdock/domain";
 import { isAuthorityActive, type AgentAuthority } from "@agentdock/ens";
-import cors from "@fastify/cors";
 import Fastify from "fastify";
 
 import { InMemoryServiceStore, type ServiceStore } from "./service-store.js";
@@ -38,9 +37,21 @@ export function buildApp({
   workflowStore = new InMemoryWorkflowStore(),
 }: BuildAppOptions = {}) {
   const app = Fastify({ logger: true });
-  void app.register(cors, {
-    credentials: true,
-    origin: process.env.WEB_URL?.split(",").filter(Boolean) ?? false,
+  const allowedOrigins = process.env.WEB_URL?.split(",").filter(Boolean) ?? [];
+  app.addHook("onRequest", (request, reply, done) => {
+    const origin = request.headers.origin;
+    if (origin && allowedOrigins.includes(origin)) {
+      reply.header("access-control-allow-origin", origin);
+      reply.header("access-control-allow-credentials", "true");
+      reply.header("access-control-allow-headers", "content-type, authorization");
+      reply.header("access-control-allow-methods", "GET, POST, OPTIONS");
+      reply.header("vary", "Origin");
+    }
+    if (request.method === "OPTIONS") {
+      reply.code(204).send();
+      return;
+    }
+    done();
   });
 
   app.addHook("onClose", () => {
