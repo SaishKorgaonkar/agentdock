@@ -21,7 +21,7 @@ const artifact = JSON.parse(
     ),
     "utf8",
   ),
-) as { abi: unknown; bytecode: { object: `0x${string}` } };
+) as { abi: unknown; bytecode: `0x${string}` };
 const account = privateKeyToAccount(privateKey);
 const walletClient = createWalletClient({
   account,
@@ -35,7 +35,7 @@ const publicClient = createPublicClient({
 
 const hash = await walletClient.deployContract({
   abi: artifact.abi,
-  bytecode: artifact.bytecode.object,
+  bytecode: artifact.bytecode,
   args: [account.address],
 });
 const receipt = await publicClient.waitForTransactionReceipt({ hash });
