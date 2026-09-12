@@ -2,6 +2,7 @@ import { EnsAuthorityAdapter } from "@agentdock/ens";
 
 import { buildApp } from "./app.js";
 import { createHederaPaidRiskReportClient } from "./risk-client.js";
+import { SqliteServiceStore } from "./service-store.js";
 import {
   SqliteWorkflowStore,
   sqlitePathFromDatabaseUrl,
@@ -9,6 +10,9 @@ import {
 
 const workflowStore = process.env.DATABASE_URL
   ? new SqliteWorkflowStore(sqlitePathFromDatabaseUrl(process.env.DATABASE_URL))
+  : undefined;
+const serviceStore = process.env.DATABASE_URL
+  ? new SqliteServiceStore(sqlitePathFromDatabaseUrl(process.env.DATABASE_URL))
   : undefined;
 const authorityReader =
   process.env.SEPOLIA_RPC_URL && process.env.ENS_RESOLVER_ADDRESS
@@ -27,7 +31,12 @@ const riskReportRequester =
         operatorPrivateKey: process.env.HEDERA_OPERATOR_KEY,
       })
     : undefined;
-const app = buildApp({ authorityReader, riskReportRequester, workflowStore });
+const app = buildApp({
+  authorityReader,
+  riskReportRequester,
+  serviceStore,
+  workflowStore,
+});
 const port = Number.parseInt(process.env.PORT ?? "4000", 10);
 
 try {

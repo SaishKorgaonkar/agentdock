@@ -2,6 +2,7 @@ import { isWorkflowStatus } from "@agentdock/domain";
 import { isAuthorityActive, type AgentAuthority } from "@agentdock/ens";
 import Fastify from "fastify";
 
+import { InMemoryServiceStore, type ServiceStore } from "./service-store.js";
 import {
   InMemoryWorkflowStore,
   WorkflowAlreadyExistsError,
@@ -24,6 +25,7 @@ type BuildAppOptions = {
   authorityReader?: AuthorityReader;
   now?: () => string;
   riskReportRequester?: RiskReportRequester;
+  serviceStore?: ServiceStore;
   workflowStore?: WorkflowStore;
 };
 
@@ -31,6 +33,7 @@ export function buildApp({
   authorityReader,
   now = () => new Date().toISOString(),
   riskReportRequester,
+  serviceStore = new InMemoryServiceStore(),
   workflowStore = new InMemoryWorkflowStore(),
 }: BuildAppOptions = {}) {
   const app = Fastify({ logger: true });
@@ -39,10 +42,38 @@ export function buildApp({
     workflowStore.close?.();
   });
 
+  app.addHook("onClose", () => {
+    serviceStore.close?.();
+  });
+
   app.get("/health", async () => ({
     service: "agentdock-api",
     status: "ok",
   }));
+
+  app.get("/v1/services", async (request) => {
+    const query = stringValue(request.query, "q");
+    return { services: serviceStore.list(query) };
+  });
+
+  app.post("/v1/services", async (request, reply) => {
+    const providerName = stringValue(request.body, "providerName");
+    const ensName = stringValue(request.body, "ensName");
+    const capability = stringValue(request.body, "capability");
+    const description = stringValue(request.body, "description");
+    const endpoint = stringValue(request.body, "endpoint");
+    const priceTinybars = stringValue(request.body, "priceTinybars");
+    if (!providerName || !ensName || !capability || !description || !endpoint || !priceTinybars) {
+      return reply.code(400).send({ error: "providerName, ensName, capability, description, endpoint, and priceTinybars are required" });
+    }
+    try {
+      return reply.code(201).send(serviceStore.create({
+        id: crypto.randomUUID(), providerName, ensName, capability, description, endpoint, priceTinybars, createdAt: now(),
+      }));
+    } catch (error) {
+      return reply.code(409).send({ error: error instanceof Error ? error.message : "Unable to publish service" });
+    }
+  });
 
   app.post("/v1/workflows", async (request, reply) => {
     const workflowId = stringValue(request.body, "id");
