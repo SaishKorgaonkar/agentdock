@@ -69,6 +69,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 | 2026-09-12 | Hedera transfer proof      | Transaction `0.0.8318923@1789236627.481853640` transferred 10,000 tinybars to `0.0.8318774`; status `SUCCESS`                   |
 | 2026-09-12 | ENSv2 resolver proof       | `agentdock.eth` wrote/read `agentdock.phase0`; transaction `0x5c69c7c0cdcaedd711b095124cddfbfd8d895abf6b76956090915abf7e1894c3` |
 | 2026-09-13 | CRE TEE simulation          | CLI compiled and simulated AgentDock `handlerInTee` for AWS Nitro `us-west-2`; policy result `COMPLETED` (simulator, not a real enclave) |
+| 2026-09-13 | Sepolia receipt registry    | `WorkflowReceiptRegistry` deployed at `0x70fa78b86d6e1992989c98ddcbf61162a80a8c06`; transaction `0x8733614706e161c14f00f937ff537e55b70a6b588f7d43dbb1b2a3d267df7d1d` |
 | 2026-09-11 | Signed risk-report engine  | RPC balance aggregation, evidence hashing, and Ed25519 signing are covered by unit tests                                        |
 
 ## Update convention

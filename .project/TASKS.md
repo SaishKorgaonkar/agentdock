@@ -17,7 +17,7 @@
 - Deploy the ENS authority adapter against the provisioned writable ENSv2-compatible resolver; prove grant, authorization, and revocation on Sepolia.
 - Implement real Hedera x402 Risk API after ENS authority layer is designed.
 - Implement CRE private policy evaluation after paid report schema is stable.
-- Deploy receipt registry and connect full orchestration.
+- Connect full orchestration to the deployed Sepolia receipt registry (`0x70fa78b86d6e1992989c98ddcbf61162a80a8c06`).
 - Build hosted dashboard, observability, threat model, and submission materials.
 - Plan limited-production launch only after complete testnet E2E proof and security review.
 
@@ -40,3 +40,4 @@
 - [x] Verified a signed Hedera testnet transfer from `0.0.8318923` to `0.0.8318774` — 2026-09-12
 - [x] Wrote and read the `agentdock.phase0` record on `agentdock.eth` through the ETHOnline ENSv2 resolver — 2026-09-12
 - [x] Ran an AWS Nitro `us-west-2` `handlerInTee` simulation with an AgentDock policy decision — 2026-09-13
+- [x] Deployed `WorkflowReceiptRegistry` to Sepolia — 2026-09-13
