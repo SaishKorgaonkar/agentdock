@@ -1,0 +1,42 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-ae54bb33ab6ab1889ea6f8763190ace14a297531",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "compilerType": "solc",
+  "userSourceNameMap": {
+    "contracts/WorkflowReceiptRegistry.sol": "project/contracts/WorkflowReceiptRegistry.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/WorkflowReceiptRegistry.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.28;\n\ncontract WorkflowReceiptRegistry {\n    enum Status { Completed, RequiresApproval, Failed, Expired }\n\n    struct Receipt {\n        bytes32 workflowId;\n        bytes32 agentNamehash;\n        bytes32 serviceNamehash;\n        bytes32 evidenceHash;\n        bytes32 decisionHash;\n        string hederaPaymentReference;\n        Status status;\n        uint64 recordedAt;\n    }\n\n    address public immutable writer;\n    mapping(bytes32 workflowId => Receipt receipt) private receipts;\n\n    event ReceiptRecorded(\n        bytes32 indexed workflowId,\n        bytes32 indexed agentNamehash,\n        bytes32 indexed evidenceHash,\n        Status status,\n        string hederaPaymentReference\n    );\n\n    error Unauthorized();\n    error ReceiptAlreadyExists();\n\n    constructor(address initialWriter) {\n        writer = initialWriter;\n    }\n\n    function recordReceipt(Receipt calldata receipt) external {\n        if (msg.sender != writer) revert Unauthorized();\n        if (receipts[receipt.workflowId].recordedAt != 0) revert ReceiptAlreadyExists();\n\n        Receipt memory stored = receipt;\n        stored.recordedAt = uint64(block.timestamp);\n        receipts[receipt.workflowId] = stored;\n        emit ReceiptRecorded(\n            stored.workflowId,\n            stored.agentNamehash,\n            stored.evidenceHash,\n            stored.status,\n            stored.hederaPaymentReference\n        );\n    }\n\n    function getReceipt(bytes32 workflowId) external view returns (Receipt memory) {\n        return receipts[workflowId];\n    }\n}\n"
+      }
+    }
+  }
+}
