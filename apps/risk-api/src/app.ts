@@ -1,3 +1,4 @@
+import cors from "@fastify/cors";
 import Fastify from "fastify";
 
 import { type RiskReport, type RiskReportRequest } from "./report.js";
@@ -20,6 +21,10 @@ export function buildApp({
   x402,
 }: BuildAppOptions = {}) {
   const app = Fastify({ logger: true });
+  void app.register(cors, {
+    credentials: true,
+    origin: process.env.WEB_URL?.split(",").filter(Boolean) ?? false,
+  });
 
   app.addHook("onClose", () => {
     reportStore.close?.();

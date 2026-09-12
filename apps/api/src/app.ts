@@ -1,5 +1,6 @@
 import { isWorkflowStatus } from "@agentdock/domain";
 import { isAuthorityActive, type AgentAuthority } from "@agentdock/ens";
+import cors from "@fastify/cors";
 import Fastify from "fastify";
 
 import { InMemoryServiceStore, type ServiceStore } from "./service-store.js";
@@ -37,6 +38,10 @@ export function buildApp({
   workflowStore = new InMemoryWorkflowStore(),
 }: BuildAppOptions = {}) {
   const app = Fastify({ logger: true });
+  void app.register(cors, {
+    credentials: true,
+    origin: process.env.WEB_URL?.split(",").filter(Boolean) ?? false,
+  });
 
   app.addHook("onClose", () => {
     workflowStore.close?.();
