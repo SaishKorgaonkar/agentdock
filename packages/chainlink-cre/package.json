@@ -1,0 +1,15 @@
+{
+  "name": "@agentdock/chainlink-cre",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@chainlink/cre-sdk": "1.20.0",
+    "@chainlink/cre-sdk-javy-plugin": "1.7.0"
+  },
+  "devDependencies": {"typescript":"^5.9.2"}
+}
