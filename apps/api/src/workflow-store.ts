@@ -20,15 +20,24 @@ export class WorkflowAlreadyExistsError extends Error {
   }
 }
 
+export type WorkflowReportEvidence = Readonly<{
+  requestId: string;
+  evidenceHash: string;
+  signature: string;
+}>;
+
 export interface WorkflowStore {
   create(workflowId: string): Workflow;
   get(workflowId: string): Workflow;
   transition(workflowId: string, request: TransitionRequest): Workflow;
+  saveReportEvidence(workflowId: string, evidence: WorkflowReportEvidence): void;
+  getReportEvidence(workflowId: string): WorkflowReportEvidence | undefined;
   close?(): void;
 }
 
 export class InMemoryWorkflowStore implements WorkflowStore {
   readonly #workflows = new Map<string, Workflow>();
+  readonly #reports = new Map<string, WorkflowReportEvidence>();
 
   create(workflowId: string): Workflow {
     if (this.#workflows.has(workflowId)) {
@@ -55,6 +64,16 @@ export class InMemoryWorkflowStore implements WorkflowStore {
     const transitioned = transitionWorkflow(workflow, request);
     this.#workflows.set(workflowId, transitioned);
     return transitioned;
+  }
+
+  saveReportEvidence(workflowId: string, evidence: WorkflowReportEvidence): void {
+    this.get(workflowId);
+    this.#reports.set(workflowId, Object.freeze({ ...evidence }));
+  }
+
+  getReportEvidence(workflowId: string): WorkflowReportEvidence | undefined {
+    this.get(workflowId);
+    return this.#reports.get(workflowId);
   }
 }
 
@@ -83,6 +102,12 @@ export class SqliteWorkflowStore implements WorkflowStore {
       CREATE TABLE IF NOT EXISTS workflows (
         id TEXT PRIMARY KEY,
         status TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS workflow_reports (
+        workflow_id TEXT PRIMARY KEY REFERENCES workflows(id),
+        request_id TEXT NOT NULL,
+        evidence_hash TEXT NOT NULL,
+        signature TEXT NOT NULL
       );
       CREATE TABLE IF NOT EXISTS workflow_events (
         workflow_id TEXT NOT NULL REFERENCES workflows(id),
@@ -177,6 +202,40 @@ export class SqliteWorkflowStore implements WorkflowStore {
       this.#database.exec("ROLLBACK");
       throw error;
     }
+  }
+
+  saveReportEvidence(workflowId: string, evidence: WorkflowReportEvidence): void {
+    this.get(workflowId);
+    this.#database
+      .prepare(
+        `INSERT INTO workflow_reports (workflow_id, request_id, evidence_hash, signature)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(workflow_id) DO UPDATE SET
+           request_id = excluded.request_id,
+           evidence_hash = excluded.evidence_hash,
+           signature = excluded.signature`,
+      )
+      .run(workflowId, evidence.requestId, evidence.evidenceHash, evidence.signature);
+  }
+
+  getReportEvidence(workflowId: string): WorkflowReportEvidence | undefined {
+    this.get(workflowId);
+    const row = this.#database
+      .prepare(
+        `SELECT request_id, evidence_hash, signature
+         FROM workflow_reports WHERE workflow_id = ?`,
+      )
+      .get(workflowId) as
+      | { request_id: string; evidence_hash: string; signature: string }
+      | undefined;
+
+    return row
+      ? {
+          requestId: row.request_id,
+          evidenceHash: row.evidence_hash,
+          signature: row.signature,
+        }
+      : undefined;
   }
 
   close(): void {
