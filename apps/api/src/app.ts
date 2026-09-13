@@ -138,6 +138,25 @@ export function buildApp({
       });
     }
     try {
+      if (!authorityReader) {
+        return reply
+          .code(503)
+          .send({ error: "ENS authority is not configured" });
+      }
+      const authority = await authorityReader.readAuthority(ensName);
+      if (
+        !authority ||
+        !isAuthorityActive(authority, new Date(now())) ||
+        !authority.capabilities.includes(capability) ||
+        authority.endpoint.replace(/\/$/, "") !== endpoint.replace(/\/$/, "") ||
+        authority.x402Network !== "hedera:testnet"
+      ) {
+        return reply.code(403).send({
+          error:
+            "ENS authority must permit this capability, endpoint, and Hedera testnet service",
+        });
+      }
+
       return reply.code(201).send(
         serviceStore.create({
           id: crypto.randomUUID(),

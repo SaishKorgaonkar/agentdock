@@ -1,3 +1,4 @@
+import { ProviderPublisher } from "../_components/provider-publisher";
 import { PageShell } from "../_components/site-chrome";
 import { ProviderFlow } from "../_components/flows/provider-flow";
 import { ButtonGroup } from "../_components/ui/button";
@@ -48,6 +49,15 @@ export default function ProvidersPage() {
         </PageHero>
 
         <PageSection
+          eyebrow="Publish"
+          title="List your service in the live directory"
+          description="Sign in, provide your service metadata, and prove authority through live ENS records."
+          size="md"
+        >
+          <ProviderPublisher />
+        </PageSection>
+
+        <PageSection
           eyebrow="Provider user flow"
           title="Five steps from publish to reputation"
           description="Detailed step-by-step flow. See user flows for the full customer journey."
@@ -58,7 +68,12 @@ export default function ProvidersPage() {
           </div>
         </PageSection>
 
-        <PageSection eyebrow="Why publish" title="Built for specialist agent providers" size="md" band="surface">
+        <PageSection
+          eyebrow="Why publish"
+          title="Built for specialist agent providers"
+          size="md"
+          band="surface"
+        >
           <div className="grid gap-4 sm:grid-cols-2">
             {benefits.map(({ title, body }, i) =>
               i === 0 ? (
@@ -80,7 +95,9 @@ export default function ProvidersPage() {
           <div className="grid gap-12 lg:grid-cols-2">
             <div>
               <p className="fr-label">Requirements</p>
-              <h2 className="fr-display-md mt-4">Start with testnet infrastructure</h2>
+              <h2 className="fr-display-md mt-4">
+                Start with testnet infrastructure
+              </h2>
               <ul className="fr-checklist mt-8">
                 {requirements.map((item) => (
                   <li key={item} className="fr-checklist-item">
@@ -90,11 +107,14 @@ export default function ProvidersPage() {
                 ))}
               </ul>
               <p className="fr-micro fr-ink-muted mt-8">
-                CRE confidential workflow: simulator verified. Real TEE deployment access pending.
+                CRE confidential workflow: simulator verified. Real TEE
+                deployment access pending.
               </p>
             </div>
             <div className="fr-code-block">
-              <p className="fr-label !text-[10px]">Example service registration</p>
+              <p className="fr-label !text-[10px]">
+                Example service registration
+              </p>
               <pre className="mt-4">{`POST /v1/services
 {
   "providerName": "RiskLab",
