@@ -27,31 +27,44 @@ export type WorkflowReportEvidence = Readonly<{
 }>;
 
 export interface WorkflowStore {
-  create(workflowId: string): Workflow;
-  list(): Workflow[];
+  create(workflowId: string, ownerId?: string): Workflow;
+  list(ownerId?: string): Workflow[];
+  ownerId(workflowId: string): string | undefined;
   get(workflowId: string): Workflow;
   transition(workflowId: string, request: TransitionRequest): Workflow;
-  saveReportEvidence(workflowId: string, evidence: WorkflowReportEvidence): void;
+  saveReportEvidence(
+    workflowId: string,
+    evidence: WorkflowReportEvidence,
+  ): void;
   getReportEvidence(workflowId: string): WorkflowReportEvidence | undefined;
   close?(): void;
 }
 
 export class InMemoryWorkflowStore implements WorkflowStore {
   readonly #workflows = new Map<string, Workflow>();
+  readonly #owners = new Map<string, string>();
   readonly #reports = new Map<string, WorkflowReportEvidence>();
 
-  create(workflowId: string): Workflow {
+  create(workflowId: string, ownerId?: string): Workflow {
     if (this.#workflows.has(workflowId)) {
       throw new WorkflowAlreadyExistsError(workflowId);
     }
 
     const workflow = createWorkflow(workflowId);
     this.#workflows.set(workflowId, workflow);
+    if (ownerId) this.#owners.set(workflowId, ownerId);
     return workflow;
   }
 
-  list(): Workflow[] {
-    return [...this.#workflows.values()];
+  list(ownerId?: string): Workflow[] {
+    return [...this.#workflows.values()].filter(
+      (workflow) => !ownerId || this.#owners.get(workflow.id) === ownerId,
+    );
+  }
+
+  ownerId(workflowId: string): string | undefined {
+    this.get(workflowId);
+    return this.#owners.get(workflowId);
   }
 
   get(workflowId: string): Workflow {
@@ -71,7 +84,10 @@ export class InMemoryWorkflowStore implements WorkflowStore {
     return transitioned;
   }
 
-  saveReportEvidence(workflowId: string, evidence: WorkflowReportEvidence): void {
+  saveReportEvidence(
+    workflowId: string,
+    evidence: WorkflowReportEvidence,
+  ): void {
     this.get(workflowId);
     this.#reports.set(workflowId, Object.freeze({ ...evidence }));
   }
@@ -85,6 +101,7 @@ export class InMemoryWorkflowStore implements WorkflowStore {
 type WorkflowRow = {
   id: string;
   status: string;
+  owner_id?: string | null;
 };
 
 type WorkflowEventRow = {
@@ -106,7 +123,8 @@ export class SqliteWorkflowStore implements WorkflowStore {
       PRAGMA foreign_keys = ON;
       CREATE TABLE IF NOT EXISTS workflows (
         id TEXT PRIMARY KEY,
-        status TEXT NOT NULL
+        status TEXT NOT NULL,
+        owner_id TEXT
       );
       CREATE TABLE IF NOT EXISTS workflow_reports (
         workflow_id TEXT PRIMARY KEY REFERENCES workflows(id),
@@ -125,9 +143,15 @@ export class SqliteWorkflowStore implements WorkflowStore {
         UNIQUE (workflow_id, idempotency_key)
       );
     `);
+    const workflowColumns = this.#database
+      .prepare("PRAGMA table_info(workflows)")
+      .all() as { name: string }[];
+    if (!workflowColumns.some((column) => column.name === "owner_id")) {
+      this.#database.exec("ALTER TABLE workflows ADD COLUMN owner_id TEXT");
+    }
   }
 
-  create(workflowId: string): Workflow {
+  create(workflowId: string, ownerId?: string): Workflow {
     const existing = this.#selectWorkflow(workflowId);
     if (existing) {
       throw new WorkflowAlreadyExistsError(workflowId);
@@ -135,14 +159,30 @@ export class SqliteWorkflowStore implements WorkflowStore {
 
     const workflow = createWorkflow(workflowId);
     this.#database
-      .prepare("INSERT INTO workflows (id, status) VALUES (?, ?)")
-      .run(workflow.id, workflow.status);
+      .prepare("INSERT INTO workflows (id, status, owner_id) VALUES (?, ?, ?)")
+      .run(workflow.id, workflow.status, ownerId ?? null);
     return workflow;
   }
 
-  list(): Workflow[] {
-    const rows = this.#database.prepare("SELECT id FROM workflows ORDER BY id DESC").all() as { id: string }[];
+  list(ownerId?: string): Workflow[] {
+    const rows = (
+      ownerId
+        ? this.#database
+            .prepare(
+              "SELECT id FROM workflows WHERE owner_id = ? ORDER BY id DESC",
+            )
+            .all(ownerId)
+        : this.#database
+            .prepare("SELECT id FROM workflows ORDER BY id DESC")
+            .all()
+    ) as { id: string }[];
     return rows.map((row) => this.get(row.id));
+  }
+
+  ownerId(workflowId: string): string | undefined {
+    const row = this.#selectWorkflow(workflowId);
+    if (!row) throw new WorkflowNotFoundError(workflowId);
+    return row.owner_id ?? undefined;
   }
 
   get(workflowId: string): Workflow {
@@ -214,7 +254,10 @@ export class SqliteWorkflowStore implements WorkflowStore {
     }
   }
 
-  saveReportEvidence(workflowId: string, evidence: WorkflowReportEvidence): void {
+  saveReportEvidence(
+    workflowId: string,
+    evidence: WorkflowReportEvidence,
+  ): void {
     this.get(workflowId);
     this.#database
       .prepare(
@@ -225,7 +268,12 @@ export class SqliteWorkflowStore implements WorkflowStore {
            evidence_hash = excluded.evidence_hash,
            signature = excluded.signature`,
       )
-      .run(workflowId, evidence.requestId, evidence.evidenceHash, evidence.signature);
+      .run(
+        workflowId,
+        evidence.requestId,
+        evidence.evidenceHash,
+        evidence.signature,
+      );
   }
 
   getReportEvidence(workflowId: string): WorkflowReportEvidence | undefined {
@@ -254,7 +302,7 @@ export class SqliteWorkflowStore implements WorkflowStore {
 
   #selectWorkflow(workflowId: string): WorkflowRow | undefined {
     return this.#database
-      .prepare("SELECT id, status FROM workflows WHERE id = ?")
+      .prepare("SELECT id, status, owner_id FROM workflows WHERE id = ?")
       .get(workflowId) as WorkflowRow | undefined;
   }
 }

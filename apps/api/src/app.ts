@@ -48,6 +48,14 @@ export function buildApp({
   workflowStore = new InMemoryWorkflowStore(),
 }: BuildAppOptions = {}) {
   const app = Fastify({ logger: true });
+  const authenticatedUsers = new WeakMap<object, string>();
+  const assertWorkflowAccess = (request: object, workflowId: string) => {
+    if (!authVerifier) return;
+    const userId = authenticatedUsers.get(request);
+    if (!userId || workflowStore.ownerId(workflowId) !== userId) {
+      throw new WorkflowNotFoundError(workflowId);
+    }
+  };
   const allowedOrigins = process.env.WEB_URL?.split(",").filter(Boolean) ?? [];
   app.addHook("onRequest", (request, reply, done) => {
     const origin = request.headers.origin;
@@ -79,7 +87,10 @@ export function buildApp({
     }
 
     try {
-      await authVerifier.verifyAuthorization(request.headers.authorization);
+      const userId = await authVerifier.verifyAuthorization(
+        request.headers.authorization,
+      );
+      authenticatedUsers.set(request, userId);
     } catch (error) {
       if (error instanceof AuthenticationError) {
         return reply.code(401).send({ error: error.message });
@@ -155,6 +166,7 @@ export function buildApp({
       if (!workflowId || !serviceId)
         return reply.code(400).send({ error: "serviceId is required" });
       try {
+        assertWorkflowAccess(request, workflowId);
         workflowStore.get(workflowId);
         return {
           service: serviceStore.selectForWorkflow(workflowId, serviceId),
@@ -178,7 +190,11 @@ export function buildApp({
     }
 
     try {
-      return reply.code(201).send(workflowStore.create(workflowId));
+      return reply
+        .code(201)
+        .send(
+          workflowStore.create(workflowId, authenticatedUsers.get(request)),
+        );
     } catch (error) {
       if (error instanceof WorkflowAlreadyExistsError) {
         return reply.code(409).send({ error: error.message });
@@ -214,6 +230,7 @@ export function buildApp({
       }
 
       try {
+        assertWorkflowAccess(request, workflowId);
         const authority = await authorityReader.readAuthority(agentName);
         if (
           !authority ||
@@ -269,6 +286,7 @@ export function buildApp({
       }
 
       try {
+        assertWorkflowAccess(request, workflowId);
         let workflow = workflowStore.get(workflowId);
         const existing = workflowStore.getReportEvidence(workflowId);
         if (existing) return { workflow, report: existing, paid: true };
@@ -343,6 +361,7 @@ export function buildApp({
       }
 
       try {
+        assertWorkflowAccess(request, workflowId);
         const workflow = workflowStore.get(workflowId);
         const existing = workflowStore.getReportEvidence(workflowId);
         if (existing) {
@@ -378,12 +397,15 @@ export function buildApp({
     },
   );
 
-  app.get("/v1/workflows", async () => ({ workflows: workflowStore.list() }));
+  app.get("/v1/workflows", async (request) => ({
+    workflows: workflowStore.list(authenticatedUsers.get(request)),
+  }));
 
   app.get("/v1/workflows/:workflowId", async (request, reply) => {
     const workflowId = stringValue(request.params, "workflowId");
 
     try {
+      assertWorkflowAccess(request, workflowId ?? "");
       return workflowStore.get(workflowId ?? "");
     } catch (error) {
       if (error instanceof WorkflowNotFoundError) {
@@ -412,6 +434,7 @@ export function buildApp({
     }
 
     try {
+      assertWorkflowAccess(request, workflowId);
       return workflowStore.transition(workflowId, {
         to: status,
         idempotencyKey,

@@ -252,6 +252,39 @@ describe("workflow API", () => {
     });
   });
 
+  it("isolates workflows by authenticated user", async () => {
+    const app = buildApp({
+      authVerifier: {
+        async verifyAuthorization(authorization) {
+          if (!authorization?.startsWith("Bearer "))
+            throw new Error("missing token");
+          return authorization.slice("Bearer ".length);
+        },
+      },
+    });
+    apps.push(app);
+
+    await app.inject({
+      method: "POST",
+      url: "/v1/workflows",
+      headers: { authorization: "Bearer user-one" },
+      payload: { id: "private-workflow" },
+    });
+    const otherList = await app.inject({
+      method: "GET",
+      url: "/v1/workflows",
+      headers: { authorization: "Bearer user-two" },
+    });
+    const otherGet = await app.inject({
+      method: "GET",
+      url: "/v1/workflows/private-workflow",
+      headers: { authorization: "Bearer user-two" },
+    });
+
+    expect(otherList.json()).toEqual({ workflows: [] });
+    expect(otherGet.statusCode).toBe(404);
+  });
+
   it("rejects invalid transitions and unknown workflows", async () => {
     const app = buildApp();
     apps.push(app);
