@@ -1,9 +1,10 @@
 packages:
   - "apps/*"
   - "packages/*"
+  - "integrations/*/*"
 
 allowBuilds:
-  '@reown/appkit': false
+  "@reown/appkit": false
   bufferutil: false
   esbuild: true
   keccak: false

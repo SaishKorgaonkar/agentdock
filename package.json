@@ -16,7 +16,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "phase-zero:hedera": "pnpm --filter @agentdock/phase-zero hedera:transfer",
-    "phase-zero:ens": "pnpm --filter @agentdock/phase-zero ens:write"
+    "phase-zero:ens": "pnpm --filter @agentdock/phase-zero ens:write",
+    "cre:simulate": "bash scripts/run-cre-simulation.sh"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

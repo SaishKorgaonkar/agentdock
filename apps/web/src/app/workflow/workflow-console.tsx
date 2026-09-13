@@ -1,7 +1,8 @@
 "use client";
 
-import { usePrivy } from "@privy-io/react-auth";
 import { useEffect, useState } from "react";
+
+import { useAgentDockAuth } from "../_components/auth-provider";
 
 type WorkflowEvent = {
   sequence: number;
@@ -44,7 +45,8 @@ async function responseError(response: Response, fallback: string) {
 }
 
 export default function WorkflowConsole() {
-  const { authenticated, getAccessToken, login, ready } = usePrivy();
+  const { authenticated, configured, getAccessToken, login, ready } =
+    useAgentDockAuth();
   const [workflow, setWorkflow] = useState<Workflow>();
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [services, setServices] = useState<AgentService[]>([]);
@@ -308,11 +310,13 @@ export default function WorkflowConsole() {
         disabled={loading}
         className="fr-btn-primary disabled:opacity-50"
       >
-        {!authenticated
-          ? "Sign in to create"
-          : loading
-            ? "Working…"
-            : "1. Create workflow"}
+        {!configured
+          ? "Configure Privy to create"
+          : !authenticated
+            ? "Sign in to create"
+            : loading
+              ? "Working…"
+              : "1. Create workflow"}
       </button>
 
       {error && <p className="fr-alert-error mt-5">{error}</p>}

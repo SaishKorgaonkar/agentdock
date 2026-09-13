@@ -1,0 +1,7 @@
+{
+  "schedule": "*/30 * * * * *",
+  "policyVersion": "agentdock-policy-v1",
+  "reportEvidenceHash": "0xf84c076e05b0e593ec2d563f259c4a4618737c57c51e66ec0c5cbc4a0ea0f3cc",
+  "totalWei": "1000000000000000000",
+  "maximumWei": "2000000000000000000"
+}

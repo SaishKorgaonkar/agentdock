@@ -1,7 +1,8 @@
 "use client";
 
-import { usePrivy } from "@privy-io/react-auth";
 import { useEffect, useState } from "react";
+
+import { useAgentDockAuth } from "./auth-provider";
 
 type PublishedService = {
   id: string;
@@ -19,7 +20,8 @@ type ProviderSummary = {
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export function ProviderPublisher() {
-  const { authenticated, getAccessToken, login, ready } = usePrivy();
+  const { authenticated, configured, getAccessToken, login, ready } =
+    useAgentDockAuth();
   const [form, setForm] = useState({
     providerName: "",
     ensName: "",
@@ -141,11 +143,13 @@ export function ProviderPublisher() {
             disabled={loading}
             className="fr-btn-primary disabled:opacity-50"
           >
-            {!authenticated
-              ? "Sign in to publish"
-              : loading
-                ? "Validating…"
-                : "Validate ENS and publish"}
+            {!configured
+              ? "Configure Privy to publish"
+              : !authenticated
+                ? "Sign in to publish"
+                : loading
+                  ? "Validating…"
+                  : "Validate ENS and publish"}
           </button>
         </div>
       </form>

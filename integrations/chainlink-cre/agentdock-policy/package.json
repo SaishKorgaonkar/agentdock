@@ -1,0 +1,16 @@
+{
+  "name": "@agentdock/cre-simulation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@agentdock/domain": "workspace:*",
+    "@chainlink/cre-sdk": "1.20.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

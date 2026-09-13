@@ -1,13 +1,62 @@
 # AgentDock
 
-AgentDock is a public testnet marketplace and policy-controlled execution platform for AI agent services. Providers publish ENS-identified, x402-priced services. Users authorize an agent, approve payment, receive signed delivery evidence, evaluate policy, and anchor the final receipt on Sepolia.
+AgentDock combines an **AI-agent service marketplace** with a **policy-controlled execution and evidence layer**. Providers publish services with verifiable identities, declared capabilities, machine-readable endpoints, and transparent prices. Users discover those services and run them through durable workflows that constrain who may act, what may be purchased, and which policy must pass before completion.
+
+Each execution produces an inspectable trail: authenticated ownership, ENS authority, explicit payment consent, x402 settlement, signed delivery evidence, a deterministic policy decision, and an onchain receipt. AgentDock therefore turns agent-to-agent commerce from an opaque API call into a bounded and auditable product workflow.
 
 - **Live product:** https://agentdock-web-pi.vercel.app
 - **Service catalog:** https://agentdock-web-pi.vercel.app/services
 - **Workflow console:** https://agentdock-web-pi.vercel.app/workflow
 - **Provider console:** https://agentdock-web-pi.vercel.app/providers
 
-## What is real
+## Judge navigation
+
+Jump directly to the relevant product or prize-track implementation:
+
+- [Product flow](#product-flow)
+- [Chainlink CRE confidential policy](#chainlink-cre-confidential-policy)
+- [Hedera x402 payments](#hedera-x402-payments)
+- [ENSv2 agent authority](#ensv2-agent-authority)
+- [Sepolia evidence receipts](#sepolia-evidence-receipts)
+- [Verified end-to-end evidence](#verified-end-to-end-evidence)
+- [Run the complete product locally](#run-the-complete-product-locally)
+- [Run the CRE simulation locally](#run-the-cre-simulation-locally)
+- [Demo recording script](./docs/DEMO_SCRIPT.md)
+
+## Prize-track integrations
+
+### Chainlink CRE confidential policy
+
+AgentDock wraps its deterministic private-policy evaluator with Chainlink CRE [`handlerInTee`](./integrations/chainlink-cre/agentdock-policy/main.ts), targeting AWS Nitro in `us-west-2`. The runnable, secret-free CRE project is committed under [`integrations/chainlink-cre`](./integrations/chainlink-cre), while the evaluator shared with the orchestrator lives in [`packages/domain/src/policy.ts`](./packages/domain/src/policy.ts).
+
+**Status:** official CRE simulator verified. Chainlink confirmed confidential-workflow simulation is accepted for judging; live confidential deployment remains access-gated. AgentDock does not claim that the browser-triggered execution currently runs in a deployed enclave.
+
+### Hedera x402 payments
+
+The paid Risk API issues an x402 quote on `hedera:testnet`. The orchestrator accepts only native HBAR (`0.0.0`), the expected network and recipient, and a maximum of exactly `10,000` tinybars. Payment requires explicit user confirmation. The durable workflow stores the x402 `PAYMENT-RESPONSE` transaction reference and does not request delivery before settlement.
+
+- Client and spend guard: [`apps/api/src/risk-client.ts`](./apps/api/src/risk-client.ts)
+- Settlement verification: [`packages/hedera/src/payment.ts`](./packages/hedera/src/payment.ts)
+- x402-protected provider: [`apps/risk-api/src/x402.ts`](./apps/risk-api/src/x402.ts)
+- [Verified HashScan transaction](https://hashscan.io/testnet/transaction/0.0.9185802@1789310877.433059891)
+
+### ENSv2 agent authority
+
+Before spend is enabled, the orchestrator resolves the agent's Sepolia ENS records and verifies its role, requested capability, endpoint, network scope, expiry, revocation state, and policy hash. Providers must pass the same live checks before their service can be published.
+
+- Authority adapter: [`packages/ens/src/authority.ts`](./packages/ens/src/authority.ts)
+- Registered name: `agentdock.eth`
+- [ENS registration transaction](https://sepolia.etherscan.io/tx/0xafeb6fd38bce553be3a83f0e692fca9d25fe3be6d6f2f66d86023b3fe98ba48d)
+- [ENS record proof transaction](https://sepolia.etherscan.io/tx/0x5c69c7c0cdcaedd711b095124cddfbfd8d895abf6b76956090915abf7e1894c3)
+
+### Sepolia evidence receipts
+
+Terminal policy decisions are written to [`WorkflowReceiptRegistry`](./packages/contracts/contracts/WorkflowReceiptRegistry.sol). The contract stores hashes, namehashes, status, and payment references instead of private report or policy data.
+
+- Registry: [`0x70fa78b86d6e1992989c98ddcbf61162a80a8c06`](https://sepolia.etherscan.io/address/0x70fa78b86d6e1992989c98ddcbf61162a80a8c06)
+- [Verified receipt transaction](https://sepolia.etherscan.io/tx/0x466d5ec559b09d626db5d0d2b39195765b74739fd52b49069b9030666286bdfe)
+
+## Integration status
 
 | Layer           | Implementation                                                             | Status                          |
 | --------------- | -------------------------------------------------------------------------- | ------------------------------- |
@@ -19,7 +68,7 @@ AgentDock is a public testnet marketplace and policy-controlled execution platfo
 | Policy          | Shared deterministic evaluator executed by the CRE `handlerInTee` workflow | Official CRE simulator verified |
 | Receipt         | `WorkflowReceiptRegistry` on Sepolia                                       | Live                            |
 
-The CRE portion is truthfully labelled **simulator verified**. Chainlink confirmed that official confidential-workflow simulation is accepted for judging; real confidential deployment remains access-gated. ENS, Hedera payment, signed delivery, authentication, storage, and Sepolia receipts are not mocked.
+ENS, Hedera payment, signed delivery, authentication, durable storage, and Sepolia receipts use real public testnets and are not mocked.
 
 ## Architecture
 
@@ -47,7 +96,9 @@ DRAFT → ACTIVE → SERVICE_DISCOVERED → PAYMENT_QUOTED
 
 Users cannot invoke arbitrary transitions in the authenticated deployment. Workflows and services are isolated by Privy user ID.
 
-## Customer flow
+## Product flow
+
+### Customer flow
 
 1. Sign in with email OTP or an external wallet.
 2. Browse ENS-identified services and their tinybar prices.
@@ -60,7 +111,7 @@ Users cannot invoke arbitrary transitions in the authenticated deployment. Workf
 9. Set the private policy threshold.
 10. Evaluate the policy and open the confirmed Sepolia receipt.
 
-## Provider flow
+### Provider flow
 
 1. Sign in and open `/providers`.
 2. Publish a provider name, ENS name, capability, public endpoint, description, and tinybar price.
@@ -115,15 +166,29 @@ packages/contracts      Sepolia receipt registry
 packages/phase-zero     Reproducible network proof runners
 ```
 
-## Local development
+## Run the complete product locally
 
 Requirements: Node.js 22+, pnpm 11.25.0, testnet accounts, and a Privy app.
 
 ```bash
 pnpm install
 cp .env.example .env.local
+```
+
+The Fastify services read the repository-root `.env.local`. Next.js loads its environment from `apps/web`, so also create `apps/web/.env.local`:
+
+```bash
+cat > apps/web/.env.local <<'EOF'
+NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXT_PUBLIC_PRIVY_APP_ID=your-privy-app-id
+EOF
+
 pnpm dev
 ```
+
+Only the Privy app ID and public API URL belong in the web file. Never put `PRIVY_APP_SECRET`, wallet keys, Hedera keys, seed phrases, or signing PEMs under a `NEXT_PUBLIC_` name.
+
+If `NEXT_PUBLIC_PRIVY_APP_ID` is absent, the UI now remains usable for public pages and shows a configuration prompt instead of crashing. Authentication and workflow mutations require the app ID.
 
 Default ports:
 
@@ -150,6 +215,29 @@ pnpm phase-zero:hedera
 pnpm phase-zero:ens
 pnpm --filter @agentdock/phase-zero ens:authority
 ```
+
+> The Hedera proof command can transfer testnet funds. Do not run it during judging unless that spend is intentional.
+
+## Run the CRE simulation locally
+
+Install and authenticate the Chainlink CRE CLI, then run the committed workflow from the repository root:
+
+```bash
+cre version
+cre login
+pnpm cre:simulate
+```
+
+The staging config uses the already verified report evidence and a `1 ETH <= 2 ETH` policy. The committed source shows the `handlerInTee` wrapper, and the expected terminal output includes:
+
+```text
+Trigger requested TEE Execution
+AWS Nitro in us-west-2
+The simulator is not a real TEE
+AgentDock confidential policy decision: COMPLETED
+```
+
+To demonstrate the opposite branch, edit [`config.staging.json`](./integrations/chainlink-cre/agentdock-policy/config.staging.json) so `totalWei` is greater than `maximumWei`, then rerun `pnpm cre:simulate`; the decision becomes `REQUIRES_APPROVAL`. This command invokes the official CRE simulator and does not initiate a Hedera payment or Sepolia write.
 
 ## Deployment
 

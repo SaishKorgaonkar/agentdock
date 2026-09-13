@@ -10,7 +10,7 @@ Target length: 3–4 minutes. Keep the browser zoom near 90%, close unrelated ta
 4. https://agentdock-web-pi.vercel.app/providers
 5. [Hedera transaction](https://hashscan.io/testnet/transaction/0.0.9185802@1789310877.433059891)
 6. [Sepolia receipt](https://sepolia.etherscan.io/tx/0x466d5ec559b09d626db5d0d2b39195765b74739fd52b49069b9030666286bdfe)
-7. The saved Chainlink CRE `handlerInTee` simulator output
+7. A terminal opened at the AgentDock repository root, with `cre login` completed
 
 ## 0:00–0:30 — Problem and product
 
@@ -62,11 +62,11 @@ Evidence: 0xf84c076e05b0e593ec2d563f259c4a4618737c57c51e66ec0c5cbc4a0ea0f3cc
 
 ## 2:20–2:50 — Chainlink CRE policy
 
-**Show:** Saved CRE CLI simulation with `handlerInTee`, Nitro, `us-west-2`, and `COMPLETED` visible.
+**Show:** Run `pnpm cre:simulate` from the repository root. Point out `handlerInTee`, Nitro, `us-west-2`, and `COMPLETED` in the result.
 
 **Say:**
 
-> The signed evidence feeds a deterministic policy evaluator. This exact evaluator is wrapped by Chainlink CRE handlerInTee, targeting AWS Nitro in us-west-2. Chainlink confirmed that official simulation is accepted for this track. We label it simulator verified and do not claim a live confidential deployment while access remains gated.
+> The signed evidence feeds a deterministic policy evaluator. I am now triggering the committed Chainlink CRE workflow locally through the official simulator. It wraps the same evaluator with handlerInTee, targeting AWS Nitro in us-west-2. The simulator returns COMPLETED for the verified report and threshold. We label it simulator verified and do not claim a live confidential deployment while access remains gated.
 
 ## 2:50–3:15 — Sepolia receipt
 
@@ -96,6 +96,7 @@ Receipt: 0x466d5ec559b09d626db5d0d2b39195765b74739fd52b49069b9030666286bdfe
 
 - Never display `.env.local`, Fly secrets, wallet private keys, seed phrases, or PEM contents.
 - Clearly say **testnet**.
+- Run `cre login` before recording so `pnpm cre:simulate` does not pause for authentication.
 - Clearly say **CRE simulator verified**, not live TEE deployed.
 - Show both explorer transaction statuses.
 - Show the explicit payment checkbox.

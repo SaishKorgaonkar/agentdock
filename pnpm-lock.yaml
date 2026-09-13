@@ -129,6 +129,19 @@ importers:
         specifier: ^5
         version: 5.9.3
 
+  integrations/chainlink-cre/agentdock-policy:
+    dependencies:
+      '@agentdock/domain':
+        specifier: workspace:*
+        version: link:../../../packages/domain
+      '@chainlink/cre-sdk':
+        specifier: 1.20.0
+        version: 1.20.0(supports-color@8.1.1)(typescript@5.9.3)
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   packages/chainlink-cre:
     dependencies:
       '@agentdock/domain':
@@ -139,7 +152,7 @@ importers:
         version: 1.20.0(supports-color@8.1.1)(typescript@5.9.3)
       '@chainlink/cre-sdk-javy-plugin':
         specifier: 1.7.0
-        version: 1.7.0(zod@3.25.76)
+        version: 1.7.0(zod@4.5.4)
       '@noble/hashes':
         specifier: 2.2.0
         version: 2.2.0
@@ -6906,6 +6919,10 @@ snapshots:
     optionalDependencies:
       zod: 3.25.76
 
+  '@chainlink/cre-sdk-javy-plugin@1.7.0(zod@4.5.4)':
+    optionalDependencies:
+      zod: 4.5.4
+
   '@chainlink/cre-sdk@1.20.0(supports-color@8.1.1)(typescript@5.9.3)':
     dependencies:
       '@bufbuild/protobuf': 2.6.3
@@ -12505,7 +12522,7 @@ snapshots:
 
   extension-port-stream@3.0.0:
     dependencies:
-      readable-stream: 3.6.2
+      readable-stream: 4.7.0
       webextension-polyfill: 0.10.0
 
   eyes@0.1.8: {}
