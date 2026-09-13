@@ -19,7 +19,7 @@ export function Hero() {
             </p>
           </div>
 
-          <div className="fr-animate-in fr-delay-3">
+          <div className="fr-hero-actions fr-animate-in fr-delay-3">
             <ButtonGroup
               primary={hero.primaryCta}
               secondary={hero.secondaryCta}
@@ -27,7 +27,7 @@ export function Hero() {
             />
           </div>
 
-          <ul className="fr-trust-strip fr-trust-strip--center fr-animate-in fr-delay-3">
+          <ul className="fr-hero-trust fr-trust-strip fr-trust-strip--center fr-animate-in fr-delay-3">
             {trustStrip.map((item) => (
               <li key={item}>{item}</li>
             ))}

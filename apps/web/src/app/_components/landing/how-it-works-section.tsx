@@ -15,8 +15,8 @@ export function HowItWorksSection() {
           {howItWorks.steps.map(({ step, title, body }) => (
             <li key={step} className="fr-step-card">
               <span className="fr-step-num">{step}</span>
-              <h3 className="fr-headline mt-6">{title}</h3>
-              <p className="fr-body fr-ink-muted mt-3">{body}</p>
+              <h3 className="fr-headline fr-step-title">{title}</h3>
+              <p className="fr-body fr-ink-muted fr-step-body">{body}</p>
             </li>
           ))}
         </ol>

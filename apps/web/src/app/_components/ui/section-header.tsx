@@ -20,16 +20,16 @@ export function SectionHeader({
   const alignClass = align === "center" ? "mx-auto max-w-3xl text-center" : "max-w-3xl";
 
   return (
-    <div className={alignClass}>
+    <div className={`fr-section-header ${alignClass}`}>
       {eyebrow && (
-        <p className={`fr-label mb-4 ${align === "center" ? "mx-auto w-fit" : ""}`}>
+        <p className={`fr-label ${align === "center" ? "mx-auto w-fit" : ""}`}>
           {eyebrow}
         </p>
       )}
       <h2 className={sizeClass}>{title}</h2>
       {description && (
         <p
-          className={`fr-body-lg fr-ink-muted mt-6 ${align === "center" ? "mx-auto max-w-2xl" : "max-w-2xl"}`}
+          className={`fr-body-lg fr-ink-muted ${align === "center" ? "mx-auto max-w-2xl" : "max-w-2xl"}`}
         >
           {description}
         </p>

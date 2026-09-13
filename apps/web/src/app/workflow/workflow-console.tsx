@@ -94,7 +94,11 @@ export default function WorkflowConsole() {
   }
 
   useEffect(() => {
-    if (ready) void load();
+    if (!ready) return;
+    const timeout = window.setTimeout(() => void load(), 0);
+    return () => window.clearTimeout(timeout);
+    // load intentionally refreshes when the Privy session changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, authenticated]);
 
   async function createWorkflow() {

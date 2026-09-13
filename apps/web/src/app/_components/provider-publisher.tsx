@@ -34,7 +34,7 @@ export function ProviderPublisher() {
   const [loading, setLoading] = useState(false);
 
   async function loadSummary() {
-    if (!apiUrl || !authenticated) return setSummary(undefined);
+    if (!apiUrl || !authenticated) return;
     const token = await getAccessToken();
     const response = await fetch(`${apiUrl}/v1/provider/services`, {
       headers: token ? { authorization: `Bearer ${token}` } : {},
@@ -46,7 +46,11 @@ export function ProviderPublisher() {
   }
 
   useEffect(() => {
-    if (ready) void loadSummary();
+    if (!ready) return;
+    const timeout = window.setTimeout(() => void loadSummary(), 0);
+    return () => window.clearTimeout(timeout);
+    // loadSummary intentionally refreshes when the Privy session changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, authenticated]);
 
   function update(key: keyof typeof form, value: string) {
