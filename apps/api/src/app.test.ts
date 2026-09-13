@@ -193,6 +193,11 @@ describe("workflow API", () => {
           };
         },
       },
+      receiptWriter: {
+        async write() {
+          return `0x${"c".repeat(64)}`;
+        },
+      },
       riskReportRequester: {
         async requestReport(requestId) {
           return {
@@ -203,6 +208,7 @@ describe("workflow API", () => {
             totalWei: "0",
             evidenceHash: `0x${"b".repeat(64)}`,
             signature: "signed",
+            paymentReference: "hedera:testnet:payment-1",
           };
         },
       },
@@ -249,6 +255,21 @@ describe("workflow API", () => {
       paid: true,
       workflow: { status: "REPORT_RECEIVED" },
       report: { requestId: "report-1", totalWei: "0", signature: "signed" },
+    });
+
+    const evaluated = await app.inject({
+      method: "POST",
+      url: "/v1/workflows/paid-workflow/evaluate-policy",
+      payload: { agentName: "risk.agentdock.eth", maximumWei: "1" },
+    });
+    expect(evaluated.statusCode).toBe(201);
+    expect(evaluated.json()).toMatchObject({
+      workflow: { status: "COMPLETED" },
+      decision: {
+        status: "COMPLETED",
+        simulator: "chainlink-cre-handlerInTee",
+        receiptTransactionHash: `0x${"c".repeat(64)}`,
+      },
     });
   });
 

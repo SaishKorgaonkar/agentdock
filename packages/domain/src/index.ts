@@ -1,4 +1,9 @@
 export {
+  evaluatePrivatePolicy,
+  type PrivatePolicyDecision,
+  type PrivatePolicyInput,
+} from "./policy.js";
+export {
   createWorkflow,
   isWorkflowStatus,
   transitionWorkflow,

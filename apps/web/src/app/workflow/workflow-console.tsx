@@ -23,6 +23,13 @@ type RiskReport = {
   totalWei?: string;
   evidenceHash: string;
   signature: string;
+  paymentReference?: string;
+};
+type PolicyDecision = {
+  status: "COMPLETED" | "REQUIRES_APPROVAL";
+  decisionHash: string;
+  simulator: "chainlink-cre-handlerInTee";
+  receiptTransactionHash: string;
 };
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -49,6 +56,8 @@ export default function WorkflowConsole() {
   );
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [report, setReport] = useState<RiskReport>();
+  const [maximumWei, setMaximumWei] = useState("1000000000000000000");
+  const [decision, setDecision] = useState<PolicyDecision>();
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(false);
 
@@ -102,6 +111,11 @@ export default function WorkflowConsole() {
       if (!response.ok)
         throw new Error(`Workflow API returned HTTP ${response.status}`);
       setWorkflow((await response.json()) as Workflow);
+      setServiceId("");
+      setSelectedService(undefined);
+      setReport(undefined);
+      setDecision(undefined);
+      setPaymentConfirmed(false);
       await load();
     } catch (cause) {
       setError(
@@ -191,16 +205,55 @@ export default function WorkflowConsole() {
         workflow: Workflow;
         service?: AgentService;
         report?: RiskReport;
+        decision?: PolicyDecision;
       };
       setWorkflow(context.workflow);
       setSelectedService(context.service);
       setServiceId(context.service?.id ?? "");
       setReport(context.report);
+      setDecision(context.decision);
       setPaymentConfirmed(false);
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Unable to restore workflow",
       );
+    }
+  }
+
+  async function evaluatePolicy() {
+    if (!apiUrl || !workflow || !report) return;
+    setLoading(true);
+    setError(undefined);
+    try {
+      const response = await fetch(
+        `${apiUrl}/v1/workflows/${workflow.id}/evaluate-policy`,
+        {
+          method: "POST",
+          headers: await authHeaders(true),
+          body: JSON.stringify({
+            agentName,
+            maximumWei,
+            policyVersion: "agentdock-policy-v1",
+          }),
+        },
+      );
+      if (!response.ok)
+        throw new Error(
+          await responseError(response, "Policy evaluation failed"),
+        );
+      const result = (await response.json()) as {
+        workflow: Workflow;
+        decision: PolicyDecision;
+      };
+      setWorkflow(result.workflow);
+      setDecision(result.decision);
+      await load();
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "Unable to evaluate policy",
+      );
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -378,6 +431,50 @@ export default function WorkflowConsole() {
             </div>
           )}
 
+          {report && (
+            <div className="border-t border-[rgba(255,255,255,0.06)] pt-6">
+              <p className="fr-label">5. Evaluate confidential policy</p>
+              <p className="fr-body fr-ink-muted mt-2">
+                Uses the same deterministic evaluator verified through Chainlink
+                CRE handlerInTee simulation.
+              </p>
+              <input
+                value={maximumWei}
+                onChange={(event) => setMaximumWei(event.target.value)}
+                aria-label="Maximum permitted balance in wei"
+                className="fr-input mt-3 w-full"
+              />
+              <button
+                type="button"
+                onClick={evaluatePolicy}
+                disabled={loading || !!decision}
+                className="fr-btn-secondary mt-4 disabled:opacity-40"
+              >
+                Evaluate and write Sepolia receipt
+              </button>
+            </div>
+          )}
+
+          {decision && (
+            <div className="border border-[#b9ff61]/30 bg-[#b9ff61]/10 p-5">
+              <p className="fr-label">Terminal decision · {decision.status}</p>
+              <p className="mt-3 break-all font-mono text-xs">
+                {decision.decisionHash}
+              </p>
+              <a
+                href={`https://sepolia.etherscan.io/tx/${decision.receiptTransactionHash}`}
+                target="_blank"
+                rel="noreferrer"
+                className="fr-link mt-4 inline-block text-sm"
+              >
+                View confirmed Sepolia receipt ↗
+              </a>
+              <p className="fr-micro fr-ink-muted mt-3">
+                CRE simulator verified · receipt written onchain
+              </p>
+            </div>
+          )}
+
           <div className="border-t border-[rgba(255,255,255,0.06)] pt-6">
             <p className="fr-label">Evidence timeline</p>
             <ol className="mt-4 space-y-3">
@@ -390,10 +487,12 @@ export default function WorkflowConsole() {
                 </li>
               ))}
             </ol>
-            <p className="fr-body fr-ink-muted mt-4">
-              Chainlink CRE evaluation (official simulator) and Sepolia receipt
-              are the next execution stages.
-            </p>
+            {!decision && (
+              <p className="fr-body fr-ink-muted mt-4">
+                Complete the policy step to produce the terminal Sepolia
+                receipt.
+              </p>
+            )}
           </div>
         </div>
       )}

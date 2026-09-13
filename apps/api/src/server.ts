@@ -1,7 +1,9 @@
 import { EnsAuthorityAdapter } from "@agentdock/ens";
 
 import { buildApp } from "./app.js";
+import { SqliteArtifactStore } from "./artifact-store.js";
 import { createPrivyAuthVerifier } from "./auth.js";
+import { SepoliaReceiptWriter } from "./receipt-writer.js";
 import { createHederaPaidRiskReportClient } from "./risk-client.js";
 import { SqliteServiceStore } from "./service-store.js";
 import {
@@ -16,11 +18,17 @@ const authVerifier =
         process.env.PRIVY_APP_SECRET,
       )
     : undefined;
-const workflowStore = process.env.DATABASE_URL
-  ? new SqliteWorkflowStore(sqlitePathFromDatabaseUrl(process.env.DATABASE_URL))
+const databasePath = process.env.DATABASE_URL
+  ? sqlitePathFromDatabaseUrl(process.env.DATABASE_URL)
   : undefined;
-const serviceStore = process.env.DATABASE_URL
-  ? new SqliteServiceStore(sqlitePathFromDatabaseUrl(process.env.DATABASE_URL))
+const artifactStore = databasePath
+  ? new SqliteArtifactStore(databasePath)
+  : undefined;
+const workflowStore = databasePath
+  ? new SqliteWorkflowStore(databasePath)
+  : undefined;
+const serviceStore = databasePath
+  ? new SqliteServiceStore(databasePath)
   : undefined;
 const authorityReader =
   process.env.SEPOLIA_RPC_URL && process.env.ENS_RESOLVER_ADDRESS
@@ -39,9 +47,22 @@ const riskReportRequester =
         operatorPrivateKey: process.env.HEDERA_OPERATOR_KEY,
       })
     : undefined;
+const receiptWriter =
+  process.env.SEPOLIA_RPC_URL &&
+  process.env.SEPOLIA_OPERATOR_PRIVATE_KEY &&
+  process.env.WORKFLOW_RECEIPT_REGISTRY_ADDRESS
+    ? new SepoliaReceiptWriter({
+        rpcUrl: process.env.SEPOLIA_RPC_URL,
+        privateKey: process.env.SEPOLIA_OPERATOR_PRIVATE_KEY as `0x${string}`,
+        registryAddress: process.env
+          .WORKFLOW_RECEIPT_REGISTRY_ADDRESS as `0x${string}`,
+      })
+    : undefined;
 const app = buildApp({
+  artifactStore,
   authVerifier,
   authorityReader,
+  receiptWriter,
   riskReportRequester,
   serviceStore,
   workflowStore,

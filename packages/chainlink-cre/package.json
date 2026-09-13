@@ -8,9 +8,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@agentdock/domain": "workspace:*",
     "@chainlink/cre-sdk": "1.20.0",
     "@chainlink/cre-sdk-javy-plugin": "1.7.0",
     "@noble/hashes": "2.2.0"
   },
-  "devDependencies": {"typescript":"^5.9.2"}
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
 }

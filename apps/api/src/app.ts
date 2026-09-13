@@ -1,7 +1,8 @@
-import { isWorkflowStatus } from "@agentdock/domain";
+import { evaluatePrivatePolicy, isWorkflowStatus } from "@agentdock/domain";
 import { isAuthorityActive, type AgentAuthority } from "@agentdock/ens";
 import Fastify from "fastify";
 
+import { InMemoryArtifactStore, type ArtifactStore } from "./artifact-store.js";
 import { AuthenticationError, type AuthVerifier } from "./auth.js";
 import { InMemoryServiceStore, type ServiceStore } from "./service-store.js";
 import {
@@ -27,22 +28,39 @@ type RiskReportRequester = {
     totalWei?: string;
     evidenceHash: string;
     signature: string;
+    paymentReference?: string;
   }>;
 };
 
+type ReceiptWriter = {
+  write(input: {
+    workflowId: string;
+    agentName: string;
+    serviceName: string;
+    evidenceHash: `0x${string}`;
+    decisionHash: `0x${string}`;
+    hederaPaymentReference: string;
+    status: "COMPLETED" | "REQUIRES_APPROVAL";
+  }): Promise<`0x${string}`>;
+};
+
 type BuildAppOptions = {
+  artifactStore?: ArtifactStore;
   authVerifier?: AuthVerifier;
   authorityReader?: AuthorityReader;
   now?: () => string;
+  receiptWriter?: ReceiptWriter;
   riskReportRequester?: RiskReportRequester;
   serviceStore?: ServiceStore;
   workflowStore?: WorkflowStore;
 };
 
 export function buildApp({
+  artifactStore = new InMemoryArtifactStore(),
   authVerifier,
   authorityReader,
   now = () => new Date().toISOString(),
+  receiptWriter,
   riskReportRequester,
   serviceStore = new InMemoryServiceStore(),
   workflowStore = new InMemoryWorkflowStore(),
@@ -97,6 +115,10 @@ export function buildApp({
       }
       throw error;
     }
+  });
+
+  app.addHook("onClose", () => {
+    artifactStore.close?.();
   });
 
   app.addHook("onClose", () => {
@@ -360,6 +382,102 @@ export function buildApp({
   );
 
   app.post(
+    "/v1/workflows/:workflowId/evaluate-policy",
+    async (request, reply) => {
+      const workflowId = stringValue(request.params, "workflowId");
+      const agentName = stringValue(request.body, "agentName");
+      const maximumWei = stringValue(request.body, "maximumWei");
+      const policyVersion =
+        stringValue(request.body, "policyVersion") ?? "agentdock-policy-v1";
+      if (!workflowId || !agentName || !maximumWei) {
+        return reply
+          .code(400)
+          .send({ error: "agentName and maximumWei are required" });
+      }
+      if (!receiptWriter) {
+        return reply
+          .code(503)
+          .send({ error: "Sepolia receipt writer is not configured" });
+      }
+
+      try {
+        assertWorkflowAccess(request, workflowId);
+        const existing = artifactStore.getDecision(workflowId);
+        if (existing)
+          return {
+            workflow: workflowStore.get(workflowId),
+            decision: existing,
+          };
+        const workflow = workflowStore.get(workflowId);
+        const report = workflowStore.getReportEvidence(workflowId);
+        const service = serviceStore.selectedForWorkflow(workflowId);
+        if (
+          workflow.status !== "REPORT_RECEIVED" ||
+          !report?.totalWei ||
+          !service
+        ) {
+          return reply
+            .code(409)
+            .send({
+              error:
+                "A settled signed report is required before policy evaluation",
+            });
+        }
+        if (!report.paymentReference) {
+          return reply
+            .code(409)
+            .send({ error: "The Hedera x402 payment reference is missing" });
+        }
+
+        workflowStore.transition(workflowId, {
+          to: "PRIVATE_EVALUATION_RUNNING",
+          idempotencyKey: `cre-${workflowId}`,
+          occurredAt: now(),
+        });
+        const decision = evaluatePrivatePolicy({
+          policyVersion,
+          reportEvidenceHash: report.evidenceHash,
+          totalWei: report.totalWei,
+          maximumWei,
+        });
+        const receiptTransactionHash = await receiptWriter.write({
+          workflowId,
+          agentName,
+          serviceName: service.ensName,
+          evidenceHash: report.evidenceHash as `0x${string}`,
+          decisionHash: decision.decisionHash as `0x${string}`,
+          hederaPaymentReference: report.paymentReference,
+          status: decision.status,
+        });
+        const artifact = {
+          ...decision,
+          policyVersion,
+          maximumWei,
+          simulator: "chainlink-cre-handlerInTee" as const,
+          receiptTransactionHash,
+        };
+        artifactStore.saveDecision(workflowId, artifact);
+        const transitioned = workflowStore.transition(workflowId, {
+          to: decision.status,
+          idempotencyKey: `decision-${workflowId}`,
+          occurredAt: now(),
+        });
+        return reply
+          .code(201)
+          .send({ workflow: transitioned, decision: artifact });
+      } catch (error) {
+        if (error instanceof WorkflowNotFoundError) {
+          return reply.code(404).send({ error: error.message });
+        }
+        if (error instanceof Error) {
+          return reply.code(409).send({ error: error.message });
+        }
+        throw error;
+      }
+    },
+  );
+
+  app.post(
     "/v1/workflows/:workflowId/request-risk-report",
     async (request, reply) => {
       const workflowId = stringValue(request.params, "workflowId");
@@ -428,6 +546,7 @@ export function buildApp({
         workflow: workflowStore.get(workflowId ?? ""),
         service: serviceStore.selectedForWorkflow(workflowId ?? ""),
         report: workflowStore.getReportEvidence(workflowId ?? ""),
+        decision: artifactStore.getDecision(workflowId ?? ""),
       };
     } catch (error) {
       if (error instanceof WorkflowNotFoundError) {

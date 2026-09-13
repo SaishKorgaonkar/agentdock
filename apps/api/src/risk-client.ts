@@ -13,6 +13,7 @@ export type PaidRiskReport = Readonly<{
   totalWei: string;
   evidenceHash: string;
   signature: string;
+  paymentReference?: string;
 }>;
 
 export class RiskServiceError extends Error {}
@@ -44,6 +45,8 @@ export class RiskReportClient {
       );
     }
 
+    const paymentReference =
+      response.headers.get("PAYMENT-RESPONSE") ?? undefined;
     const report = (await response.json()) as Partial<PaidRiskReport>;
     if (
       report.requestId !== requestId ||
@@ -59,7 +62,7 @@ export class RiskReportClient {
       );
     }
 
-    return report as PaidRiskReport;
+    return { ...report, paymentReference } as PaidRiskReport;
   }
 }
 

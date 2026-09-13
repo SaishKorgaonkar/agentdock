@@ -28,6 +28,7 @@ export type WorkflowReportEvidence = Readonly<{
   totalWei?: string;
   evidenceHash: string;
   signature: string;
+  paymentReference?: string;
 }>;
 
 export interface WorkflowStore {
