@@ -1,6 +1,7 @@
 import { EnsAuthorityAdapter } from "@agentdock/ens";
 
 import { buildApp } from "./app.js";
+import { createPrivyAuthVerifier } from "./auth.js";
 import { createHederaPaidRiskReportClient } from "./risk-client.js";
 import { SqliteServiceStore } from "./service-store.js";
 import {
@@ -8,6 +9,13 @@ import {
   sqlitePathFromDatabaseUrl,
 } from "./workflow-store.js";
 
+const authVerifier =
+  process.env.PRIVY_APP_ID && process.env.PRIVY_APP_SECRET
+    ? createPrivyAuthVerifier(
+        process.env.PRIVY_APP_ID,
+        process.env.PRIVY_APP_SECRET,
+      )
+    : undefined;
 const workflowStore = process.env.DATABASE_URL
   ? new SqliteWorkflowStore(sqlitePathFromDatabaseUrl(process.env.DATABASE_URL))
   : undefined;
@@ -32,6 +40,7 @@ const riskReportRequester =
       })
     : undefined;
 const app = buildApp({
+  authVerifier,
   authorityReader,
   riskReportRequester,
   serviceStore,

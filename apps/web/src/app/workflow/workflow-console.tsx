@@ -1,5 +1,6 @@
 "use client";
 
+import { usePrivy } from "@privy-io/react-auth";
 import { useEffect, useState } from "react";
 
 type WorkflowEvent = {
@@ -36,6 +37,7 @@ async function responseError(response: Response, fallback: string) {
 }
 
 export default function WorkflowConsole() {
+  const { authenticated, getAccessToken, login, ready } = usePrivy();
   const [workflow, setWorkflow] = useState<Workflow>();
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [services, setServices] = useState<AgentService[]>([]);
@@ -50,14 +52,24 @@ export default function WorkflowConsole() {
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(false);
 
+  async function authHeaders(includeContentType = false) {
+    const token = await getAccessToken();
+    return {
+      ...(includeContentType ? { "content-type": "application/json" } : {}),
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+    };
+  }
+
   async function load() {
     if (!apiUrl) return;
     try {
       const [workflowResponse, serviceResponse] = await Promise.all([
-        fetch(`${apiUrl}/v1/workflows`),
+        authenticated
+          ? fetch(`${apiUrl}/v1/workflows`, { headers: await authHeaders() })
+          : Promise.resolve(undefined),
         fetch(`${apiUrl}/v1/services`),
       ]);
-      if (workflowResponse.ok)
+      if (workflowResponse?.ok)
         setWorkflows(
           ((await workflowResponse.json()) as { workflows?: Workflow[] })
             .workflows ?? [],
@@ -73,17 +85,18 @@ export default function WorkflowConsole() {
   }
 
   useEffect(() => {
-    void load();
-  }, []);
+    if (ready) void load();
+  }, [ready, authenticated]);
 
   async function createWorkflow() {
+    if (!authenticated) return login();
     if (!apiUrl) return setError("NEXT_PUBLIC_API_URL is not configured.");
     setLoading(true);
     setError(undefined);
     try {
       const response = await fetch(`${apiUrl}/v1/workflows`, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: await authHeaders(true),
         body: JSON.stringify({ id: `workflow-${crypto.randomUUID()}` }),
       });
       if (!response.ok)
@@ -108,7 +121,7 @@ export default function WorkflowConsole() {
         `${apiUrl}/v1/workflows/${workflow.id}/select-service`,
         {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: await authHeaders(true),
           body: JSON.stringify({ serviceId }),
         },
       );
@@ -136,7 +149,7 @@ export default function WorkflowConsole() {
         `${apiUrl}/v1/workflows/${workflow.id}/authorize-ens`,
         {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: await authHeaders(true),
           body: JSON.stringify({
             agentName,
             idempotencyKey: `ens-${workflow.id}`,
@@ -169,7 +182,7 @@ export default function WorkflowConsole() {
         `${apiUrl}/v1/workflows/${workflow.id}/purchase-risk-report`,
         {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: await authHeaders(true),
           body: JSON.stringify({
             requestId: `report-${crypto.randomUUID()}`,
             addresses: [address],
@@ -207,7 +220,11 @@ export default function WorkflowConsole() {
         disabled={loading}
         className="fr-btn-primary disabled:opacity-50"
       >
-        {loading ? "Working…" : "1. Create workflow"}
+        {!authenticated
+          ? "Sign in to create"
+          : loading
+            ? "Working…"
+            : "1. Create workflow"}
       </button>
 
       {error && <p className="fr-alert-error mt-5">{error}</p>}

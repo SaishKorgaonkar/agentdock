@@ -2,6 +2,7 @@ import { isWorkflowStatus } from "@agentdock/domain";
 import { isAuthorityActive, type AgentAuthority } from "@agentdock/ens";
 import Fastify from "fastify";
 
+import { AuthenticationError, type AuthVerifier } from "./auth.js";
 import { InMemoryServiceStore, type ServiceStore } from "./service-store.js";
 import {
   InMemoryWorkflowStore,
@@ -30,6 +31,7 @@ type RiskReportRequester = {
 };
 
 type BuildAppOptions = {
+  authVerifier?: AuthVerifier;
   authorityReader?: AuthorityReader;
   now?: () => string;
   riskReportRequester?: RiskReportRequester;
@@ -38,6 +40,7 @@ type BuildAppOptions = {
 };
 
 export function buildApp({
+  authVerifier,
   authorityReader,
   now = () => new Date().toISOString(),
   riskReportRequester,
@@ -63,6 +66,26 @@ export function buildApp({
       return;
     }
     done();
+  });
+
+  app.addHook("preHandler", async (request, reply) => {
+    if (
+      !authVerifier ||
+      request.method === "OPTIONS" ||
+      request.url === "/health" ||
+      (request.method === "GET" && request.url.startsWith("/v1/services"))
+    ) {
+      return;
+    }
+
+    try {
+      await authVerifier.verifyAuthorization(request.headers.authorization);
+    } catch (error) {
+      if (error instanceof AuthenticationError) {
+        return reply.code(401).send({ error: error.message });
+      }
+      throw error;
+    }
   });
 
   app.addHook("onClose", () => {
@@ -98,12 +121,10 @@ export function buildApp({
       !endpoint ||
       !priceTinybars
     ) {
-      return reply
-        .code(400)
-        .send({
-          error:
-            "providerName, ensName, capability, description, endpoint, and priceTinybars are required",
-        });
+      return reply.code(400).send({
+        error:
+          "providerName, ensName, capability, description, endpoint, and priceTinybars are required",
+      });
     }
     try {
       return reply.code(201).send(
@@ -119,14 +140,10 @@ export function buildApp({
         }),
       );
     } catch (error) {
-      return reply
-        .code(409)
-        .send({
-          error:
-            error instanceof Error
-              ? error.message
-              : "Unable to publish service",
-        });
+      return reply.code(409).send({
+        error:
+          error instanceof Error ? error.message : "Unable to publish service",
+      });
     }
   });
 
@@ -143,14 +160,12 @@ export function buildApp({
           service: serviceStore.selectForWorkflow(workflowId, serviceId),
         };
       } catch (error) {
-        return reply
-          .code(404)
-          .send({
-            error:
-              error instanceof Error
-                ? error.message
-                : "Service or workflow not found",
-          });
+        return reply.code(404).send({
+          error:
+            error instanceof Error
+              ? error.message
+              : "Service or workflow not found",
+        });
       }
     },
   );
