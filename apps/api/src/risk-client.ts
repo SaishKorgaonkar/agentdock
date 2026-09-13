@@ -7,6 +7,10 @@ import {
 
 export type PaidRiskReport = Readonly<{
   requestId: string;
+  chain: "evm";
+  generatedAt: string;
+  balances: readonly Readonly<{ address: string; wei: string }>[];
+  totalWei: string;
   evidenceHash: string;
   signature: string;
 }>;
@@ -43,6 +47,10 @@ export class RiskReportClient {
     const report = (await response.json()) as Partial<PaidRiskReport>;
     if (
       report.requestId !== requestId ||
+      report.chain !== "evm" ||
+      typeof report.generatedAt !== "string" ||
+      !Array.isArray(report.balances) ||
+      typeof report.totalWei !== "string" ||
       typeof report.evidenceHash !== "string" ||
       typeof report.signature !== "string"
     ) {

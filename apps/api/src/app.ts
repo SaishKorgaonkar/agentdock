@@ -18,7 +18,15 @@ type RiskReportRequester = {
   requestReport(
     requestId: string,
     addresses: readonly string[],
-  ): Promise<{ requestId: string; evidenceHash: string; signature: string }>;
+  ): Promise<{
+    requestId: string;
+    chain?: "evm";
+    generatedAt?: string;
+    balances?: readonly Readonly<{ address: string; wei: string }>[];
+    totalWei?: string;
+    evidenceHash: string;
+    signature: string;
+  }>;
 };
 
 type BuildAppOptions = {
@@ -43,7 +51,10 @@ export function buildApp({
     if (origin && allowedOrigins.includes(origin)) {
       reply.header("access-control-allow-origin", origin);
       reply.header("access-control-allow-credentials", "true");
-      reply.header("access-control-allow-headers", "content-type, authorization");
+      reply.header(
+        "access-control-allow-headers",
+        "content-type, authorization",
+      );
       reply.header("access-control-allow-methods", "GET, POST, OPTIONS");
       reply.header("vary", "Origin");
     }
@@ -79,29 +90,70 @@ export function buildApp({
     const description = stringValue(request.body, "description");
     const endpoint = stringValue(request.body, "endpoint");
     const priceTinybars = stringValue(request.body, "priceTinybars");
-    if (!providerName || !ensName || !capability || !description || !endpoint || !priceTinybars) {
-      return reply.code(400).send({ error: "providerName, ensName, capability, description, endpoint, and priceTinybars are required" });
+    if (
+      !providerName ||
+      !ensName ||
+      !capability ||
+      !description ||
+      !endpoint ||
+      !priceTinybars
+    ) {
+      return reply
+        .code(400)
+        .send({
+          error:
+            "providerName, ensName, capability, description, endpoint, and priceTinybars are required",
+        });
     }
     try {
-      return reply.code(201).send(serviceStore.create({
-        id: crypto.randomUUID(), providerName, ensName, capability, description, endpoint, priceTinybars, createdAt: now(),
-      }));
+      return reply.code(201).send(
+        serviceStore.create({
+          id: crypto.randomUUID(),
+          providerName,
+          ensName,
+          capability,
+          description,
+          endpoint,
+          priceTinybars,
+          createdAt: now(),
+        }),
+      );
     } catch (error) {
-      return reply.code(409).send({ error: error instanceof Error ? error.message : "Unable to publish service" });
+      return reply
+        .code(409)
+        .send({
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unable to publish service",
+        });
     }
   });
 
-  app.post("/v1/workflows/:workflowId/select-service", async (request, reply) => {
-    const workflowId = stringValue(request.params, "workflowId");
-    const serviceId = stringValue(request.body, "serviceId");
-    if (!workflowId || !serviceId) return reply.code(400).send({ error: "serviceId is required" });
-    try {
-      workflowStore.get(workflowId);
-      return { service: serviceStore.selectForWorkflow(workflowId, serviceId) };
-    } catch (error) {
-      return reply.code(404).send({ error: error instanceof Error ? error.message : "Service or workflow not found" });
-    }
-  });
+  app.post(
+    "/v1/workflows/:workflowId/select-service",
+    async (request, reply) => {
+      const workflowId = stringValue(request.params, "workflowId");
+      const serviceId = stringValue(request.body, "serviceId");
+      if (!workflowId || !serviceId)
+        return reply.code(400).send({ error: "serviceId is required" });
+      try {
+        workflowStore.get(workflowId);
+        return {
+          service: serviceStore.selectForWorkflow(workflowId, serviceId),
+        };
+      } catch (error) {
+        return reply
+          .code(404)
+          .send({
+            error:
+              error instanceof Error
+                ? error.message
+                : "Service or workflow not found",
+          });
+      }
+    },
+  );
 
   app.post("/v1/workflows", async (request, reply) => {
     const workflowId = stringValue(request.body, "id");
@@ -178,6 +230,84 @@ export function buildApp({
   );
 
   app.post(
+    "/v1/workflows/:workflowId/purchase-risk-report",
+    async (request, reply) => {
+      const workflowId = stringValue(request.params, "workflowId");
+      const requestId = stringValue(request.body, "requestId");
+      const addresses = stringArrayValue(request.body, "addresses");
+      const paymentConfirmed = booleanValue(request.body, "paymentConfirmed");
+
+      if (!workflowId || !requestId || !addresses?.length) {
+        return reply.code(400).send({
+          error: "requestId and a non-empty addresses array are required",
+        });
+      }
+      if (!paymentConfirmed) {
+        return reply.code(400).send({
+          error: "Explicit payment confirmation is required",
+        });
+      }
+      if (!riskReportRequester) {
+        return reply
+          .code(503)
+          .send({ error: "Risk report client is not configured" });
+      }
+
+      try {
+        let workflow = workflowStore.get(workflowId);
+        const existing = workflowStore.getReportEvidence(workflowId);
+        if (existing) return { workflow, report: existing, paid: true };
+        const service = serviceStore.selectedForWorkflow(workflowId);
+        if (!service) {
+          return reply
+            .code(409)
+            .send({ error: "Select a paid service before purchase" });
+        }
+        if (workflow.status !== "ACTIVE") {
+          return reply
+            .code(409)
+            .send({ error: "Authorize the ENS agent before purchase" });
+        }
+
+        const transition = (
+          status:
+            | "SERVICE_DISCOVERED"
+            | "PAYMENT_QUOTED"
+            | "PAYMENT_AUTHORIZED"
+            | "PAYMENT_SETTLED"
+            | "REPORT_RECEIVED",
+        ) => {
+          workflow = workflowStore.transition(workflowId, {
+            to: status,
+            idempotencyKey: `purchase-${requestId}-${status.toLowerCase()}`,
+            occurredAt: now(),
+          });
+        };
+        transition("SERVICE_DISCOVERED");
+        transition("PAYMENT_QUOTED");
+        transition("PAYMENT_AUTHORIZED");
+        const report = await riskReportRequester.requestReport(
+          requestId,
+          addresses,
+        );
+        transition("PAYMENT_SETTLED");
+        workflowStore.saveReportEvidence(workflowId, report);
+        transition("REPORT_RECEIVED");
+
+        return reply.code(201).send({ workflow, service, report, paid: true });
+      } catch (error) {
+        if (error instanceof WorkflowNotFoundError) {
+          return reply.code(404).send({ error: error.message });
+        }
+        if (error instanceof Error) {
+          return reply.code(409).send({ error: error.message });
+        }
+        throw error;
+      }
+    },
+  );
+
+  app.post(
     "/v1/workflows/:workflowId/request-risk-report",
     async (request, reply) => {
       const workflowId = stringValue(request.params, "workflowId");
@@ -187,11 +317,14 @@ export function buildApp({
 
       if (!workflowId || !requestId || !idempotencyKey || !addresses?.length) {
         return reply.code(400).send({
-          error: "requestId, idempotencyKey, and a non-empty addresses array are required",
+          error:
+            "requestId, idempotencyKey, and a non-empty addresses array are required",
         });
       }
       if (!riskReportRequester) {
-        return reply.code(503).send({ error: "Risk report client is not configured" });
+        return reply
+          .code(503)
+          .send({ error: "Risk report client is not configured" });
       }
 
       try {
@@ -202,11 +335,15 @@ export function buildApp({
         }
         if (workflow.status !== "PAYMENT_SETTLED") {
           return reply.code(409).send({
-            error: "Risk reports can only be requested after payment settlement",
+            error:
+              "Risk reports can only be requested after payment settlement",
           });
         }
 
-        const report = await riskReportRequester.requestReport(requestId, addresses);
+        const report = await riskReportRequester.requestReport(
+          requestId,
+          addresses,
+        );
         workflowStore.saveReportEvidence(workflowId, report);
         const transitioned = workflowStore.transition(workflowId, {
           to: "REPORT_RECEIVED",
@@ -281,12 +418,19 @@ export function buildApp({
   return app;
 }
 
+function booleanValue(value: unknown, key: string): boolean | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const candidate = (value as Record<string, unknown>)[key];
+  return typeof candidate === "boolean" ? candidate : undefined;
+}
+
 function stringArrayValue(value: unknown, key: string): string[] | undefined {
   if (!value || typeof value !== "object") {
     return undefined;
   }
   const candidate = (value as Record<string, unknown>)[key];
-  return Array.isArray(candidate) && candidate.every((item) => typeof item === "string")
+  return Array.isArray(candidate) &&
+    candidate.every((item) => typeof item === "string")
     ? candidate
     : undefined;
 }

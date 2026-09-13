@@ -22,6 +22,7 @@ export interface ServiceStore {
 
 export class InMemoryServiceStore implements ServiceStore {
   readonly #services = new Map<string, AgentService>();
+  readonly #selections = new Map<string, string>();
   create(service: AgentService): AgentService {
     this.#services.set(service.id, service);
     return service;
@@ -39,12 +40,16 @@ export class InMemoryServiceStore implements ServiceStore {
   get(id: string): AgentService | undefined {
     return this.#services.get(id);
   }
-  selectForWorkflow(_workflowId: string, serviceId: string): AgentService {
+  selectForWorkflow(workflowId: string, serviceId: string): AgentService {
     const service = this.get(serviceId);
     if (!service) throw new Error("Service not found");
+    this.#selections.set(workflowId, serviceId);
     return service;
   }
-  selectedForWorkflow(_workflowId: string): AgentService | undefined { return undefined; }
+  selectedForWorkflow(workflowId: string): AgentService | undefined {
+    const serviceId = this.#selections.get(workflowId);
+    return serviceId ? this.get(serviceId) : undefined;
+  }
 }
 
 export class SqliteServiceStore implements ServiceStore {
@@ -93,11 +98,19 @@ export class SqliteServiceStore implements ServiceStore {
   selectForWorkflow(workflowId: string, serviceId: string): AgentService {
     const service = this.get(serviceId);
     if (!service) throw new Error("Service not found");
-    this.#database.prepare(`INSERT INTO workflow_service_selections VALUES (?, ?) ON CONFLICT(workflow_id) DO UPDATE SET service_id = excluded.service_id`).run(workflowId, serviceId);
+    this.#database
+      .prepare(
+        `INSERT INTO workflow_service_selections VALUES (?, ?) ON CONFLICT(workflow_id) DO UPDATE SET service_id = excluded.service_id`,
+      )
+      .run(workflowId, serviceId);
     return service;
   }
   selectedForWorkflow(workflowId: string): AgentService | undefined {
-    return this.#database.prepare(`SELECT s.id, s.provider_name as providerName, s.ens_name as ensName, s.capability, s.description, s.endpoint, s.price_tinybars as priceTinybars, s.created_at as createdAt FROM agent_services s JOIN workflow_service_selections w ON w.service_id = s.id WHERE w.workflow_id = ?`).get(workflowId) as AgentService | undefined;
+    return this.#database
+      .prepare(
+        `SELECT s.id, s.provider_name as providerName, s.ens_name as ensName, s.capability, s.description, s.endpoint, s.price_tinybars as priceTinybars, s.created_at as createdAt FROM agent_services s JOIN workflow_service_selections w ON w.service_id = s.id WHERE w.workflow_id = ?`,
+      )
+      .get(workflowId) as AgentService | undefined;
   }
   close(): void {
     this.#database.close();

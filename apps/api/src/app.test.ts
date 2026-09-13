@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { buildApp } from "./app.js";
+import { InMemoryServiceStore } from "./service-store.js";
 import { SqliteWorkflowStore } from "./workflow-store.js";
 
 const apps: ReturnType<typeof buildApp>[] = [];
@@ -163,6 +164,92 @@ describe("workflow API", () => {
     } finally {
       rmSync(directory, { force: true, recursive: true });
     }
+  });
+
+  it("requires consent and completes a paid report purchase", async () => {
+    const serviceStore = new InMemoryServiceStore();
+    serviceStore.create({
+      id: "risk-service",
+      providerName: "Risk Provider",
+      ensName: "risk.agentdock.eth",
+      capability: "purchase-risk-report",
+      description: "Signed risk report",
+      endpoint: "https://risk.example",
+      priceTinybars: "10000",
+      createdAt: "2026-09-11T22:00:00.000Z",
+    });
+    const app = buildApp({
+      now: () => "2026-09-11T22:00:00.000Z",
+      serviceStore,
+      authorityReader: {
+        async readAuthority() {
+          return {
+            role: "risk-agent",
+            capabilities: ["purchase-risk-report"],
+            expiresAt: "2026-10-01T00:00:00.000Z",
+            endpoint: "https://risk.example",
+            x402Network: "hedera:testnet",
+            policyHash: `0x${"a".repeat(64)}`,
+          };
+        },
+      },
+      riskReportRequester: {
+        async requestReport(requestId) {
+          return {
+            requestId,
+            chain: "evm",
+            generatedAt: "2026-09-11T22:00:00.000Z",
+            balances: [],
+            totalWei: "0",
+            evidenceHash: `0x${"b".repeat(64)}`,
+            signature: "signed",
+          };
+        },
+      },
+    });
+    apps.push(app);
+    await app.inject({
+      method: "POST",
+      url: "/v1/workflows",
+      payload: { id: "paid-workflow" },
+    });
+    await app.inject({
+      method: "POST",
+      url: "/v1/workflows/paid-workflow/select-service",
+      payload: { serviceId: "risk-service" },
+    });
+    await app.inject({
+      method: "POST",
+      url: "/v1/workflows/paid-workflow/authorize-ens",
+      payload: { agentName: "risk.agentdock.eth", idempotencyKey: "ens" },
+    });
+
+    const denied = await app.inject({
+      method: "POST",
+      url: "/v1/workflows/paid-workflow/purchase-risk-report",
+      payload: {
+        requestId: "report-1",
+        addresses: [`0x${"1".repeat(40)}`],
+        paymentConfirmed: false,
+      },
+    });
+    const purchased = await app.inject({
+      method: "POST",
+      url: "/v1/workflows/paid-workflow/purchase-risk-report",
+      payload: {
+        requestId: "report-1",
+        addresses: [`0x${"1".repeat(40)}`],
+        paymentConfirmed: true,
+      },
+    });
+
+    expect(denied.statusCode).toBe(400);
+    expect(purchased.statusCode).toBe(201);
+    expect(purchased.json()).toMatchObject({
+      paid: true,
+      workflow: { status: "REPORT_RECEIVED" },
+      report: { requestId: "report-1", totalWei: "0", signature: "signed" },
+    });
   });
 
   it("rejects invalid transitions and unknown workflows", async () => {
