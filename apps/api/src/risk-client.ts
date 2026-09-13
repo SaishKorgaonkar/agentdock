@@ -86,6 +86,15 @@ export function createHederaPaidRiskReportClient({
         client: new ExactHederaScheme(signer),
       },
     ],
+    spendControls: {
+      allowedAssets: [
+        {
+          network: "hedera:testnet",
+          asset: "0.0.0",
+          maxAmountPerPayment: "10000",
+        },
+      ],
+    },
   });
 
   return new RiskReportClient(baseUrl, fetcher);
