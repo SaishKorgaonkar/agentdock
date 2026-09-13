@@ -1,7 +1,7 @@
 # AgentDock progress
 
 **Updated:** 2026-09-12
-**Current phase:** Phase 0 — Hedera, ENS, and CRE simulation proofs complete; staging proof pending
+**Current phase:** Public testnet product — complete ENS → Hedera x402 → signed report → CRE simulator-compatible policy → Sepolia receipt flow verified
 
 ## Current objective
 
@@ -70,6 +70,7 @@ Validate that the three required sponsor integrations can run end to end on a Ma
 | 2026-09-12 | ENSv2 resolver proof       | `agentdock.eth` wrote/read `agentdock.phase0`; transaction `0x5c69c7c0cdcaedd711b095124cddfbfd8d895abf6b76956090915abf7e1894c3` |
 | 2026-09-13 | CRE TEE simulation          | CLI compiled and simulated AgentDock `handlerInTee` for AWS Nitro `us-west-2`; policy result `COMPLETED` (simulator, not a real enclave) |
 | 2026-09-13 | Sepolia receipt registry    | `WorkflowReceiptRegistry` deployed at `0x70fa78b86d6e1992989c98ddcbf61162a80a8c06`; transaction `0x8733614706e161c14f00f937ff537e55b70a6b588f7d43dbb1b2a3d267df7d1d` |
+| 2026-09-13 | Full production E2E proof | Workflow `production-proof-1789310883504`; Hedera x402 transaction `0.0.9185802@1789310877.433059891` transferred 10,000 tinybars to `0.0.8318774` (`SUCCESS`); signed evidence `0xf84c076e05b0e593ec2d563f259c4a4618737c57c51e66ec0c5cbc4a0ea0f3cc`; decision `COMPLETED`; Sepolia receipt tx `0x466d5ec559b09d626db5d0d2b39195765b74739fd52b49069b9030666286bdfe` (`status=1`) |
 | 2026-09-11 | Signed risk-report engine  | RPC balance aggregation, evidence hashing, and Ed25519 signing are covered by unit tests                                        |
 
 ## Update convention

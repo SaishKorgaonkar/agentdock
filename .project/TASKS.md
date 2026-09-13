@@ -1,17 +1,16 @@
 # Tasks
 
-**Updated:** 2026-09-12
+**Updated:** 2026-09-13
 
 ## In progress
 
-- [ ] Validate Phase 0 sponsor feasibility — owner of attention: project setup
-      Done when Hedera transfer, ENSv2 write/read, CRE confidential handler, and staging deploy each have reproducible evidence.
+- [ ] Complete provider ownership, earnings views, workflow recovery, and submission documentation.
 
 ## Next
 
-- [ ] Build the provider-service catalog, service publishing, workflow launch, and evidence APIs — done when real service records and user-owned workflow records are available through staging APIs.
-- [ ] Add authentication and ownership enforcement for public users — done when protected workflow/provider routes verify identity.
-- [ ] Build the Fluence-style public landing page, catalog, dashboard, and workflow evidence UI — done when the Vercel app is usable against staging APIs.
+- [ ] Add provider-owned service management and verified earnings history.
+- [ ] Harden paid-workflow retry/recovery and remove the generic transition API.
+- [ ] Finish README, architecture/evidence tables, onboarding, and demo video script.
 - [ ] Deploy the CRE confidential workflow after Chainlink enables deployment access — optional enhancement; official simulator evidence is accepted for the bounty.
 - [ ] Add production database deployment/migration operations — done when workflow-event storage is provisioned in staging with backups and health monitoring.
 
@@ -25,6 +24,10 @@
 - Plan limited-production launch only after complete testnet E2E proof and security review.
 
 ## Done
+
+- [x] Verified the complete production testnet path: live ENS authority, real Hedera x402 settlement, signed report, shared CRE policy evaluator, and confirmed Sepolia receipt — 2026-09-13
+- [x] Added Privy authentication and per-user durable workflow isolation — 2026-09-13
+- [x] Built public landing, service catalog, provider publishing, workflow history, payment confirmation, evidence timeline, and receipt UI — 2026-09-13
 
 - [x] Created public `SaishKorgaonkar/agentdock` repository and pushed `main` — 2026-09-07
 - [x] Created pnpm/Turborepo TypeScript monorepo with Next.js web, Fastify service scaffolds, CI, and passing `pnpm check` — 2026-09-07
