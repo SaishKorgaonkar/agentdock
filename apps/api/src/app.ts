@@ -360,10 +360,20 @@ export function buildApp({
         transition("SERVICE_DISCOVERED");
         transition("PAYMENT_QUOTED");
         transition("PAYMENT_AUTHORIZED");
-        const report = await riskReportRequester.requestReport(
-          requestId,
-          addresses,
-        );
+        let report;
+        try {
+          report = await riskReportRequester.requestReport(
+            requestId,
+            addresses,
+          );
+        } catch (error) {
+          workflowStore.transition(workflowId, {
+            to: "FAILED",
+            idempotencyKey: `purchase-${requestId}-failed`,
+            occurredAt: now(),
+          });
+          throw error;
+        }
         transition("PAYMENT_SETTLED");
         workflowStore.saveReportEvidence(workflowId, report);
         transition("REPORT_RECEIVED");
@@ -416,12 +426,10 @@ export function buildApp({
           !report?.totalWei ||
           !service
         ) {
-          return reply
-            .code(409)
-            .send({
-              error:
-                "A settled signed report is required before policy evaluation",
-            });
+          return reply.code(409).send({
+            error:
+              "A settled signed report is required before policy evaluation",
+          });
         }
         if (!report.paymentReference) {
           return reply
@@ -572,6 +580,9 @@ export function buildApp({
   });
 
   app.post("/v1/workflows/:workflowId/transitions", async (request, reply) => {
+    if (authVerifier) {
+      return reply.code(404).send({ error: "Route not found" });
+    }
     const workflowId = stringValue(request.params, "workflowId");
     const status = stringValue(request.body, "status");
     const idempotencyKey = stringValue(request.body, "idempotencyKey");
