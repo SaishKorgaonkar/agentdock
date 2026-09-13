@@ -420,6 +420,23 @@ export function buildApp({
     workflows: workflowStore.list(authenticatedUsers.get(request)),
   }));
 
+  app.get("/v1/workflows/:workflowId/context", async (request, reply) => {
+    const workflowId = stringValue(request.params, "workflowId");
+    try {
+      assertWorkflowAccess(request, workflowId ?? "");
+      return {
+        workflow: workflowStore.get(workflowId ?? ""),
+        service: serviceStore.selectedForWorkflow(workflowId ?? ""),
+        report: workflowStore.getReportEvidence(workflowId ?? ""),
+      };
+    } catch (error) {
+      if (error instanceof WorkflowNotFoundError) {
+        return reply.code(404).send({ error: error.message });
+      }
+      throw error;
+    }
+  });
+
   app.get("/v1/workflows/:workflowId", async (request, reply) => {
     const workflowId = stringValue(request.params, "workflowId");
 

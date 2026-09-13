@@ -173,6 +173,37 @@ export default function WorkflowConsole() {
     }
   }
 
+  async function openWorkflow(item: Workflow) {
+    setError(undefined);
+    if (!apiUrl) return setWorkflow(item);
+    try {
+      const response = await fetch(
+        `${apiUrl}/v1/workflows/${item.id}/context`,
+        {
+          headers: await authHeaders(),
+        },
+      );
+      if (!response.ok)
+        throw new Error(
+          await responseError(response, "Unable to restore workflow"),
+        );
+      const context = (await response.json()) as {
+        workflow: Workflow;
+        service?: AgentService;
+        report?: RiskReport;
+      };
+      setWorkflow(context.workflow);
+      setSelectedService(context.service);
+      setServiceId(context.service?.id ?? "");
+      setReport(context.report);
+      setPaymentConfirmed(false);
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "Unable to restore workflow",
+      );
+    }
+  }
+
   async function purchaseReport() {
     if (!apiUrl || !workflow || !selectedService || !paymentConfirmed) return;
     setLoading(true);
@@ -375,13 +406,7 @@ export default function WorkflowConsole() {
               <button
                 key={item.id}
                 type="button"
-                onClick={() => {
-                  setWorkflow(item);
-                  setSelectedService(undefined);
-                  setServiceId("");
-                  setReport(undefined);
-                  setPaymentConfirmed(false);
-                }}
+                onClick={() => void openWorkflow(item)}
                 className="fr-console-row"
               >
                 <span className="fr-micro fr-ink-muted">{item.id}</span>

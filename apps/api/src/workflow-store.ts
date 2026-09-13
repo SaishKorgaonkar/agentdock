@@ -22,6 +22,10 @@ export class WorkflowAlreadyExistsError extends Error {
 
 export type WorkflowReportEvidence = Readonly<{
   requestId: string;
+  chain?: "evm";
+  generatedAt?: string;
+  balances?: readonly Readonly<{ address: string; wei: string }>[];
+  totalWei?: string;
   evidenceHash: string;
   signature: string;
 }>;
@@ -131,6 +135,10 @@ export class SqliteWorkflowStore implements WorkflowStore {
         request_id TEXT NOT NULL,
         evidence_hash TEXT NOT NULL,
         signature TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS workflow_report_payloads (
+        workflow_id TEXT PRIMARY KEY REFERENCES workflows(id),
+        payload_json TEXT NOT NULL
       );
       CREATE TABLE IF NOT EXISTS workflow_events (
         workflow_id TEXT NOT NULL REFERENCES workflows(id),
@@ -274,6 +282,12 @@ export class SqliteWorkflowStore implements WorkflowStore {
         evidence.evidenceHash,
         evidence.signature,
       );
+    this.#database
+      .prepare(
+        `INSERT INTO workflow_report_payloads (workflow_id, payload_json) VALUES (?, ?)
+         ON CONFLICT(workflow_id) DO UPDATE SET payload_json = excluded.payload_json`,
+      )
+      .run(workflowId, JSON.stringify(evidence));
   }
 
   getReportEvidence(workflowId: string): WorkflowReportEvidence | undefined {
@@ -287,13 +301,19 @@ export class SqliteWorkflowStore implements WorkflowStore {
       | { request_id: string; evidence_hash: string; signature: string }
       | undefined;
 
-    return row
-      ? {
-          requestId: row.request_id,
-          evidenceHash: row.evidence_hash,
-          signature: row.signature,
-        }
-      : undefined;
+    if (!row) return undefined;
+    const payload = this.#database
+      .prepare(
+        "SELECT payload_json FROM workflow_report_payloads WHERE workflow_id = ?",
+      )
+      .get(workflowId) as { payload_json: string } | undefined;
+    if (payload)
+      return JSON.parse(payload.payload_json) as WorkflowReportEvidence;
+    return {
+      requestId: row.request_id,
+      evidenceHash: row.evidence_hash,
+      signature: row.signature,
+    };
   }
 
   close(): void {
