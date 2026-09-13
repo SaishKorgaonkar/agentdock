@@ -1,18 +1,25 @@
 "use client";
 
 import { usePrivy } from "@privy-io/react-auth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type PublishedService = {
   id: string;
   providerName: string;
   ensName: string;
+  capability?: string;
+  priceTinybars?: string;
+};
+type ProviderSummary = {
+  services: PublishedService[];
+  deliveries: number;
+  earnedTinybars: string;
 };
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export function ProviderPublisher() {
-  const { authenticated, getAccessToken, login } = usePrivy();
+  const { authenticated, getAccessToken, login, ready } = usePrivy();
   const [form, setForm] = useState({
     providerName: "",
     ensName: "",
@@ -22,8 +29,25 @@ export function ProviderPublisher() {
     priceTinybars: "10000",
   });
   const [published, setPublished] = useState<PublishedService>();
+  const [summary, setSummary] = useState<ProviderSummary>();
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(false);
+
+  async function loadSummary() {
+    if (!apiUrl || !authenticated) return setSummary(undefined);
+    const token = await getAccessToken();
+    const response = await fetch(`${apiUrl}/v1/provider/services`, {
+      headers: token ? { authorization: `Bearer ${token}` } : {},
+    });
+    if (response.ok) {
+      const body = (await response.json()) as { summary: ProviderSummary };
+      setSummary(body.summary);
+    }
+  }
+
+  useEffect(() => {
+    if (ready) void loadSummary();
+  }, [ready, authenticated]);
 
   function update(key: keyof typeof form, value: string) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -54,6 +78,7 @@ export function ProviderPublisher() {
           body.error ?? `Publishing returned HTTP ${response.status}`,
         );
       setPublished(body);
+      await loadSummary();
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Unable to publish service",
@@ -126,6 +151,41 @@ export function ProviderPublisher() {
           Published {published.providerName} as {published.ensName}. Service ID:{" "}
           {published.id}
         </p>
+      )}
+      {authenticated && summary && (
+        <div className="mt-8 border-t border-white/10 pt-6">
+          <p className="fr-label">My provider account</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="fr-console-panel">
+              <p className="fr-micro fr-ink-muted">Services</p>
+              <p className="mt-2 text-2xl">{summary.services.length}</p>
+            </div>
+            <div className="fr-console-panel">
+              <p className="fr-micro fr-ink-muted">Verified deliveries</p>
+              <p className="mt-2 text-2xl">{summary.deliveries}</p>
+            </div>
+            <div className="fr-console-panel">
+              <p className="fr-micro fr-ink-muted">Earned</p>
+              <p className="mt-2 text-2xl">{summary.earnedTinybars}</p>
+              <p className="fr-micro fr-ink-muted">tinybars</p>
+            </div>
+          </div>
+          <div className="mt-4 space-y-2">
+            {summary.services.map((service) => (
+              <div key={service.id} className="fr-console-row">
+                <span>
+                  <strong>{service.providerName}</strong>
+                  <span className="fr-micro fr-ink-muted ml-3">
+                    {service.ensName}
+                  </span>
+                </span>
+                <span className="fr-caption">
+                  {service.priceTinybars} tinybars
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

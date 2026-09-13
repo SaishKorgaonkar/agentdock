@@ -11,9 +11,16 @@ export type AgentService = Readonly<{
   createdAt: string;
 }>;
 
+export type ProviderSummary = Readonly<{
+  services: AgentService[];
+  deliveries: number;
+  earnedTinybars: string;
+}>;
+
 export interface ServiceStore {
-  create(service: AgentService): AgentService;
+  create(service: AgentService, ownerId?: string): AgentService;
   list(query?: string): AgentService[];
+  providerSummary(ownerId: string): ProviderSummary;
   get(id: string): AgentService | undefined;
   selectForWorkflow(workflowId: string, serviceId: string): AgentService;
   selectedForWorkflow(workflowId: string): AgentService | undefined;
@@ -22,9 +29,11 @@ export interface ServiceStore {
 
 export class InMemoryServiceStore implements ServiceStore {
   readonly #services = new Map<string, AgentService>();
+  readonly #owners = new Map<string, string>();
   readonly #selections = new Map<string, string>();
-  create(service: AgentService): AgentService {
+  create(service: AgentService, ownerId?: string): AgentService {
     this.#services.set(service.id, service);
+    if (ownerId) this.#owners.set(service.id, ownerId);
     return service;
   }
   list(query = ""): AgentService[] {
@@ -36,6 +45,15 @@ export class InMemoryServiceStore implements ServiceStore {
           .toLowerCase()
           .includes(needle),
     );
+  }
+  providerSummary(ownerId: string): ProviderSummary {
+    return {
+      services: [...this.#services.values()].filter(
+        (service) => this.#owners.get(service.id) === ownerId,
+      ),
+      deliveries: 0,
+      earnedTinybars: "0",
+    };
   }
   get(id: string): AgentService | undefined {
     return this.#services.get(id);
@@ -59,15 +77,25 @@ export class SqliteServiceStore implements ServiceStore {
     this.#database.exec(`CREATE TABLE IF NOT EXISTS agent_services (
       id TEXT PRIMARY KEY, provider_name TEXT NOT NULL, ens_name TEXT NOT NULL UNIQUE,
       capability TEXT NOT NULL, description TEXT NOT NULL, endpoint TEXT NOT NULL,
-      price_tinybars TEXT NOT NULL, created_at TEXT NOT NULL
+      price_tinybars TEXT NOT NULL, created_at TEXT NOT NULL, owner_id TEXT
     );
     CREATE TABLE IF NOT EXISTS workflow_service_selections (
       workflow_id TEXT PRIMARY KEY, service_id TEXT NOT NULL REFERENCES agent_services(id)
     );`);
+    const columns = this.#database
+      .prepare("PRAGMA table_info(agent_services)")
+      .all() as { name: string }[];
+    if (!columns.some((column) => column.name === "owner_id")) {
+      this.#database.exec(
+        "ALTER TABLE agent_services ADD COLUMN owner_id TEXT",
+      );
+    }
   }
-  create(service: AgentService): AgentService {
+  create(service: AgentService, ownerId?: string): AgentService {
     this.#database
-      .prepare(`INSERT INTO agent_services VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+      .prepare(
+        `INSERT INTO agent_services (id, provider_name, ens_name, capability, description, endpoint, price_tinybars, created_at, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
       .run(
         service.id,
         service.providerName,
@@ -77,6 +105,7 @@ export class SqliteServiceStore implements ServiceStore {
         service.endpoint,
         service.priceTinybars,
         service.createdAt,
+        ownerId ?? null,
       );
     return service;
   }
@@ -87,6 +116,23 @@ export class SqliteServiceStore implements ServiceStore {
         `SELECT id, provider_name as providerName, ens_name as ensName, capability, description, endpoint, price_tinybars as priceTinybars, created_at as createdAt FROM agent_services WHERE provider_name LIKE ? OR capability LIKE ? OR description LIKE ? ORDER BY created_at DESC`,
       )
       .all(like, like, like) as AgentService[];
+  }
+  providerSummary(ownerId: string): ProviderSummary {
+    const services = this.#database
+      .prepare(
+        `SELECT id, provider_name as providerName, ens_name as ensName, capability, description, endpoint, price_tinybars as priceTinybars, created_at as createdAt FROM agent_services WHERE owner_id = ? ORDER BY created_at DESC`,
+      )
+      .all(ownerId) as AgentService[];
+    const totals = this.#database
+      .prepare(
+        `SELECT COUNT(*) as deliveries, COALESCE(SUM(CAST(s.price_tinybars AS INTEGER)), 0) as earned FROM workflow_reports r JOIN workflow_service_selections w ON w.workflow_id = r.workflow_id JOIN agent_services s ON s.id = w.service_id WHERE s.owner_id = ?`,
+      )
+      .get(ownerId) as { deliveries: number; earned: number };
+    return {
+      services,
+      deliveries: totals.deliveries,
+      earnedTinybars: String(totals.earned),
+    };
   }
   get(id: string): AgentService | undefined {
     return this.#database

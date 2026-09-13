@@ -139,6 +139,12 @@ export function buildApp({
     return { services: serviceStore.list(query) };
   });
 
+  app.get("/v1/provider/services", async (request) => ({
+    summary: serviceStore.providerSummary(
+      authenticatedUsers.get(request) ?? "",
+    ),
+  }));
+
   app.post("/v1/services", async (request, reply) => {
     const providerName = stringValue(request.body, "providerName");
     const ensName = stringValue(request.body, "ensName");
@@ -180,16 +186,19 @@ export function buildApp({
       }
 
       return reply.code(201).send(
-        serviceStore.create({
-          id: crypto.randomUUID(),
-          providerName,
-          ensName,
-          capability,
-          description,
-          endpoint,
-          priceTinybars,
-          createdAt: now(),
-        }),
+        serviceStore.create(
+          {
+            id: crypto.randomUUID(),
+            providerName,
+            ensName,
+            capability,
+            description,
+            endpoint,
+            priceTinybars,
+            createdAt: now(),
+          },
+          authenticatedUsers.get(request),
+        ),
       );
     } catch (error) {
       return reply.code(409).send({
