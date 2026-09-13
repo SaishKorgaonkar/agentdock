@@ -1,0 +1,26 @@
+app = "agentdock-api-staging-sai"
+primary_region = "sjc"
+
+[build]
+  dockerfile = "Dockerfile.api"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+  DATABASE_URL = "file:/data/agentdock.sqlite"
+
+[mounts]
+  source = "agentdock_api_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 25
+    hard_limit = 50

@@ -1,0 +1,15 @@
+node_modules
+**/node_modules
+.git
+.next
+**/.next
+.turbo
+**/.turbo
+*.tsbuildinfo
+**/dist
+**/artifacts
+.env
+.env.*
+!.env.example
+agentdock.sqlite
+*.sqlite
